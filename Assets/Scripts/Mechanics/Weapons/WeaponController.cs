@@ -15,7 +15,6 @@ public class WeaponController : MonoBehaviour
 
     private const int MAX_SLOTS = 3;
     private readonly WeaponSlot[] _slots = new WeaponSlot[MAX_SLOTS];
-    private readonly Collider2D[] _hitBuffer = new Collider2D[24];
     private float _damageMultiplier = 1f;
 
     public event Action<WeaponSlot[]> OnSlotsChanged;
@@ -95,20 +94,19 @@ public class WeaponController : MonoBehaviour
         Vector2 aimDir = _inputReader.AimInput;
         if (aimDir.sqrMagnitude < 0.01f) return null;
 
-        int count = Physics2D.OverlapCircleNonAlloc(
-            transform.position, range, _hitBuffer, _enemyLayer);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range, _enemyLayer);
 
         EnemyHealth nearest = null;
         float nearestSqrDist = float.MaxValue;
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < hits.Length; i++)
         {
-            Vector2 toEnemy = (Vector2)(_hitBuffer[i].transform.position - transform.position);
+            Vector2 toEnemy = (Vector2)(hits[i].transform.position - transform.position);
             if (Vector2.Angle(aimDir, toEnemy) > _aimConeAngle) continue;
 
             float sqrDist = toEnemy.sqrMagnitude;
             if (sqrDist < nearestSqrDist &&
-                _hitBuffer[i].TryGetComponent<EnemyHealth>(out var health))
+                hits[i].TryGetComponent<EnemyHealth>(out var health))
             {
                 nearest = health;
                 nearestSqrDist = sqrDist;
