@@ -12,11 +12,14 @@ public class EnemyController : MonoBehaviour
     private EnemyPool _ownerPool;
 
     public EnemyData Data => _data;
+    public EnemyHealth Health => _health;
 
     public void Initialize(
         EnemyData data,
         EnemyAITier tier,
-        float statMultiplier,
+        float hpMultiplier,
+        float speedMultiplier,
+        float fireRateMultiplier,
         Transform playerTransform,
         EnemyPool ownerPool,
         RunConfig runConfig,
@@ -26,9 +29,9 @@ public class EnemyController : MonoBehaviour
         _assignedFlankAngle = assignedAngle;
         _ownerPool = ownerPool;
 
-        _health.Initialize(data.BaseHp * statMultiplier);
-        _movement.Initialize(data.BaseSpeed * statMultiplier);
-        _shooter.Initialize(data, playerTransform, statMultiplier);
+        _health.Initialize(data.BaseHp * hpMultiplier);
+        _movement.Initialize(data.BaseSpeed * speedMultiplier);
+        _shooter.Initialize(data, playerTransform, fireRateMultiplier);
 
         _stateMachine = new StateMachine();
         _stateMachine.SetState(BuildInitialState(tier, statMultiplier, playerTransform, runConfig));
