@@ -16,7 +16,7 @@ public class HealthPackPool : MonoBehaviour
 
     public void TrySpawnAt(Vector2 position)
     {
-        if (Random.value > _runConfig.HealthPackDropChance) return;
+        if (Random.value >= _runConfig.HealthPackDropChance) return;
 
         HealthPack pack = _pool.Get();
         pack.Initialize(position, () => _pool.Return(pack));
