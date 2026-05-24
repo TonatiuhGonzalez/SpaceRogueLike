@@ -34,7 +34,7 @@ public class EnemyController : MonoBehaviour
         _shooter.Initialize(data, playerTransform, fireRateMultiplier);
 
         _stateMachine = new StateMachine();
-        _stateMachine.SetState(BuildInitialState(tier, statMultiplier, playerTransform, runConfig));
+        _stateMachine.SetState(BuildInitialState(tier, playerTransform, runConfig));
 
         _health.OnDied += HandleDied;
     }
@@ -58,7 +58,6 @@ public class EnemyController : MonoBehaviour
 
     private IState BuildInitialState(
         EnemyAITier tier,
-        float statMultiplier,
         Transform playerTransform,
         RunConfig runConfig)
     {
