@@ -8,7 +8,7 @@ public class AudioManager : MonoBehaviour
 
     [Header("Sources")]
     [SerializeField] private AudioSource _musicSource;
-    [SerializeField] private AudioSource _sfxSourcePrefab;
+    [SerializeField] private AudioSourceWrapper _sfxSourcePrefab;
 
     [Header("Mixer")]
     [SerializeField] private AudioMixer _mixer;
@@ -16,7 +16,7 @@ public class AudioManager : MonoBehaviour
     [Header("Pool")]
     [SerializeField] private int _sfxPoolSize = 12;
 
-    private ObjectPool<AudioSource> _sfxPool;
+    private ObjectPool<AudioSourceWrapper> _sfxPool;
 
     private const string MUSIC_PARAM = "MusicVolume";
     private const string SFX_PARAM = "SFXVolume";
@@ -30,18 +30,18 @@ public class AudioManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        _sfxPool = new ObjectPool<AudioSource>(_sfxSourcePrefab, _sfxPoolSize, transform);
+        _sfxPool = new ObjectPool<AudioSourceWrapper>(_sfxSourcePrefab, _sfxPoolSize, transform);
     }
 
     public void PlaySFX(AudioClip clip, float volume = 1f, float pitch = 1f)
     {
         if (clip == null) return;
-        AudioSource source = _sfxPool.Get();
-        source.clip = clip;
-        source.volume = volume;
-        source.pitch = pitch;
-        source.Play();
-        StartCoroutine(ReturnWhenDone(source, clip.length / pitch));
+        AudioSourceWrapper wrapper = _sfxPool.Get();
+        wrapper.Source.clip = clip;
+        wrapper.Source.volume = volume;
+        wrapper.Source.pitch = pitch;
+        wrapper.Source.Play();
+        StartCoroutine(ReturnWhenDone(wrapper, clip.length / pitch));
     }
 
     public void PlayMusic(AudioClip clip, bool loop = true)
@@ -66,9 +66,9 @@ public class AudioManager : MonoBehaviour
         _mixer.SetFloat(SFX_PARAM, db);
     }
 
-    private IEnumerator ReturnWhenDone(AudioSource source, float duration)
+    private IEnumerator ReturnWhenDone(AudioSourceWrapper wrapper, float duration)
     {
         yield return new WaitForSeconds(duration);
-        _sfxPool.Return(source);
+        _sfxPool.Return(wrapper);
     }
 }
