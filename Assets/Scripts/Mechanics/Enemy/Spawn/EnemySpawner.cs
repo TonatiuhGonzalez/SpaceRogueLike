@@ -10,6 +10,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private RunConfig _runConfig;
     [SerializeField] private BoxCollider2D _mapBounds;
     [SerializeField] private Transform _playerTransform;
+    [SerializeField] private HealthPackPool _healthPackPool;
 
     public event Action<EnemyHealth> OnEnemySpawned;
     public int SpawnedCount { get; private set; }
@@ -68,6 +69,9 @@ public class EnemySpawner : MonoBehaviour
             enemy.Data, entry.AiTier,
             entry.HpMultiplier, entry.SpeedMultiplier, entry.FireRateMultiplier,
             _playerTransform, _pool, _runConfig, assignedAngle);
+
+        if (_healthPackPool != null)
+            enemy.Health.OnDiedAtPosition += _healthPackPool.TrySpawnAt;
 
         OnEnemySpawned?.Invoke(enemy.Health);
         SpawnedCount++;
