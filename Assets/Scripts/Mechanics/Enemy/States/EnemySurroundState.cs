@@ -14,7 +14,6 @@ public class EnemySurroundState : IState
     private const float MIN_RADIUS = 2f;
     private const float ARRIVAL_THRESHOLD_SQR = 0.16f;
 
-    private readonly Collider2D[] _projectileBuffer = new Collider2D[8];
     private float _dodgeCheckTimer;
     private const float DODGE_CHECK_INTERVAL = 0.15f;
     private Vector2 _dodgeOffset;
@@ -69,15 +68,15 @@ public class EnemySurroundState : IState
 
     private Vector2 CalculateDodgeOffset()
     {
-        int count = Physics2D.OverlapCircleNonAlloc(
-            _movement.Position, 2f, _projectileBuffer, _projectileLayer);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            _movement.Position, 2f, _projectileLayer);
 
-        if (count == 0) return Vector2.zero;
+        if (hits.Length == 0) return Vector2.zero;
 
         Vector2 avoidance = Vector2.zero;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < hits.Length; i++)
         {
-            Vector2 away = _movement.Position - (Vector2)_projectileBuffer[i].transform.position;
+            Vector2 away = _movement.Position - (Vector2)hits[i].transform.position;
             avoidance += away.normalized;
         }
         return avoidance.normalized * 1.5f;

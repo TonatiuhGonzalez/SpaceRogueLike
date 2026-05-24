@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class EnemyDodgeState : EnemyChaseState
 {
-    private readonly Collider2D[] _projectileBuffer = new Collider2D[8];
     private const float DODGE_CHECK_RADIUS = 2f;
     private const float DODGE_STRENGTH = 1.5f;
     private float _dodgeCheckTimer;
@@ -34,15 +33,15 @@ public class EnemyDodgeState : EnemyChaseState
 
     private Vector2 CalculateDodgeOffset()
     {
-        int count = Physics2D.OverlapCircleNonAlloc(
-            _movement.Position, DODGE_CHECK_RADIUS, _projectileBuffer, _projectileLayer);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            _movement.Position, DODGE_CHECK_RADIUS, _projectileLayer);
 
-        if (count == 0) return Vector2.zero;
+        if (hits.Length == 0) return Vector2.zero;
 
         Vector2 avoidance = Vector2.zero;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < hits.Length; i++)
         {
-            Vector2 away = _movement.Position - (Vector2)_projectileBuffer[i].transform.position;
+            Vector2 away = _movement.Position - (Vector2)hits[i].transform.position;
             avoidance += away.normalized;
         }
 
