@@ -92,6 +92,11 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance.PlaySFX(_audioData.PlayerDeath);
     }
 
+    public void StartLevel()
+    {
+        _levelManager.StartLevel();
+    }
+
     private void SetState(GameState newState)
     {
         CurrentState = newState;
