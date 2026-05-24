@@ -26,7 +26,9 @@
 | 19b | Fix: HealthPackPool drop chance + GameManager.StartLevel() | ✅ done | `3cee873` |
 | 20 | UI: DamageNumber, DamageNumberPool | ✅ done | `9a44d91` |
 | 21 | UI: EnemyIndicatorController | ✅ done | `b7a4f76` |
-| 22 | Scene assembly (Inspector) | ⏳ manual | — |
+| 22a | Wire: EnemyHealth event clear + EnemySpawner → HealthPackPool | ✅ done | `fe5e82c` |
+| 22b | Wire: DamageNumberPool calls in Projectile + HealthPack | ✅ done | `ab2a72e` |
+| 22c | Scene assembly (Inspector) | ⏳ manual | — |
 
 ---
 
@@ -218,13 +220,16 @@ DamageNumberPool.Instance.Spawn(transform.position, healAmount, true);
 
 ## Session Log
 
-### 2026-05-23
+### 2026-05-23 (session 1)
 - Implemented all 21 script steps (Utils, Core, Data, Audio, Input, Player, Weapons, Enemy, Level, HealthPack, UI).
 - Fixed HealthPackPool drop chance direction (`>` → `>=`).
 - Added `GameManager.StartLevel()` delegating to `LevelManager.StartLevel()`.
 - Wrote DamageNumber (coroutine float-up animation) and DamageNumberPool (singleton, ObjectPool<DamageNumber>).
 - Wrote EnemyIndicatorController (LateUpdate, viewport clip detection, edge projection, internal pool).
-- Known issues:
-  - EnemySpawner does not yet subscribe `OnDiedAtPosition → HealthPackPool.TrySpawnAt` — requires adding `_healthPackPool` field and wiring in scene (see Step 22 §9).
-  - DamageNumberPool.Spawn calls not yet added to Projectile.cs and HealthPack.cs — add per Step 22 §10.
-  - ChaserRushState uses `Physics2D.OverlapCircleAll` (allocating) instead of NonAlloc — acceptable since it fires once per chaser lifetime.
+
+### 2026-05-23 (session 2)
+- Added `EnemyHealth.OnDisable` nulling of `OnDied`/`OnDiedAtPosition` to prevent stale subscriptions on pooled enemies.
+- Added `[SerializeField] private HealthPackPool _healthPackPool` to EnemySpawner; subscribed `OnDiedAtPosition → TrySpawnAt` per spawn (cleaned up automatically by EnemyHealth.OnDisable on return-to-pool).
+- Added `DamageNumberPool.Instance.Spawn` calls in `Projectile.OnTriggerEnter2D` (damage + vampiric heal) and `HealthPack.OnTriggerEnter2D` (heal).
+- Remaining: Step 22c — scene assembly in Unity Editor (all scripts complete).
+- Known issue: ChaserRushState uses `Physics2D.OverlapCircleAll` (allocating) — acceptable since it fires once per chaser lifetime.
