@@ -20,6 +20,8 @@ public class HealthPack : MonoBehaviour
         if (other.TryGetComponent<PlayerHealth>(out var health))
             health.Heal(_healAmount);
 
+        DamageNumberPool.Instance.Spawn(transform.position, _healAmount, true);
+
         _onReturn?.Invoke();
     }
 

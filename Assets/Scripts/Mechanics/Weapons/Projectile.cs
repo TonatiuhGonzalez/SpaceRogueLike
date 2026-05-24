@@ -44,8 +44,13 @@ public class Projectile : MonoBehaviour
         if (other.TryGetComponent<IDamageable>(out var damageable))
             damageable.TakeDamage(_damage);
 
+        DamageNumberPool.Instance.Spawn(transform.position, _damage, false);
+
         if (_isVampiric)
+        {
             _onVampiricHeal?.Invoke(_vampireHeal);
+            DamageNumberPool.Instance.Spawn(transform.position, _vampireHeal, true);
+        }
 
         _onReturn?.Invoke();
     }
