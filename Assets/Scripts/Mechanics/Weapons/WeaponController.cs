@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WeaponController : MonoBehaviour
@@ -8,13 +9,14 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private ProjectileManager _projectileManager;
     [SerializeField] private PlayerHealth _playerHealth;
     [SerializeField] private AudioData _audioData;
+    [SerializeField] private RunData _runData;
+    [SerializeField] private RunConfig _runConfig;
 
     [Header("Settings")]
     [SerializeField] private LayerMask _enemyLayer;
 
     private const int MAX_SLOTS = 3;
     private readonly WeaponSlot[] _slots = new WeaponSlot[MAX_SLOTS];
-    private float _damageMultiplier = 1f;
 
     public event Action<WeaponSlot[]> OnSlotsChanged;
 
@@ -23,8 +25,6 @@ public class WeaponController : MonoBehaviour
         for (int i = 0; i < MAX_SLOTS; i++)
             _slots[i] = new WeaponSlot();
     }
-
-    public void SetDamageMultiplier(float multiplier) => _damageMultiplier = multiplier;
 
     public void EquipWeapon(WeaponData weapon, int slotIndex)
     {
@@ -49,43 +49,155 @@ public class WeaponController : MonoBehaviour
         return -1;
     }
 
+    public List<WeaponType> GetOwnedWeaponTypes()
+    {
+        var types = new List<WeaponType>();
+        for (int i = 0; i < MAX_SLOTS; i++)
+        {
+            if (!_slots[i].IsEmpty)
+                types.Add(_slots[i].EquippedWeapon.WeaponType);
+        }
+        return types;
+    }
+
+    public void ApplyGenericUpgrade(GenericStat stat)
+    {
+        _runData.Upgrades.ApplyGenericUpgrade(stat);
+    }
+
+    public void ApplySpecificUpgrade(WeaponType type)
+    {
+        for (int i = 0; i < MAX_SLOTS; i++)
+        {
+            if (!_slots[i].IsEmpty && _slots[i].EquippedWeapon.WeaponType == type)
+            {
+                _slots[i].ApplySpecificUpgrade();
+                return;
+            }
+        }
+    }
+
     private void Update()
     {
+        float fireRateMult = _runData != null
+            ? _runData.Upgrades.GetGenericMultiplier(GenericStat.FireRate)
+            : 1f;
+
         for (int i = 0; i < MAX_SLOTS; i++)
         {
             _slots[i].Tick(Time.deltaTime);
             if (_slots[i].IsReady)
-                TryFire(_slots[i]);
+                TryFire(_slots[i], fireRateMult);
         }
     }
 
-    private void TryFire(WeaponSlot slot)
+    private void TryFire(WeaponSlot slot, float fireRateMult)
     {
-        Vector2 direction = _inputReader.AimInput;
-        if (direction.sqrMagnitude < 0.01f) return;
+        Vector2 aimDir = _inputReader.AimInput;
+        if (aimDir.sqrMagnitude < 0.01f) return;
+        aimDir = aimDir.normalized;
 
-        direction = direction.normalized;
-        float damage = slot.EquippedWeapon.Damage * _damageMultiplier;
+        WeaponData weapon = slot.EquippedWeapon;
+        UpgradeRegistry upgrades = _runData?.Upgrades;
 
-        Action<float> onVampiricHeal = slot.EquippedWeapon.IsVampiric
+        float damage = weapon.Damage *
+            (upgrades?.GetGenericMultiplier(GenericStat.Damage) ?? 1f);
+        float bulletSizeMult =
+            upgrades?.GetGenericMultiplier(GenericStat.BulletSize) ?? 1f;
+
+        Action<float> onHeal = weapon.IsVampiric
             ? (amount) => _playerHealth.Heal(amount)
             : null;
+
+        switch (weapon.WeaponType)
+        {
+            case WeaponType.Fan:
+                FireFan(slot, aimDir, damage, bulletSizeMult, onHeal);
+                break;
+
+            case WeaponType.Dispersion:
+                FireDispersion(slot, aimDir, damage, bulletSizeMult, onHeal);
+                break;
+
+            default:
+                FireSingle(slot, aimDir, damage, bulletSizeMult, onHeal);
+                break;
+        }
+
+        AudioManager.Instance.PlaySFX(weapon.FireSFX ?? _audioData.ShootDefault);
+        slot.StartCooldown(fireRateMult);
+    }
+
+    private void FireSingle(WeaponSlot slot, Vector2 direction, float damage,
+        float bulletSizeMult, Action<float> onHeal)
+    {
+        _projectileManager.Spawn(
+            slot.EquippedWeapon.ProjectilePrefab,
+            transform.position,
+            BuildConfig(slot, direction, damage, bulletSizeMult, onHeal));
+    }
+
+    private void FireDispersion(WeaponSlot slot, Vector2 aimDir, float damage,
+        float bulletSizeMult, Action<float> onHeal)
+    {
+        float halfCone = slot.EffectiveConeAngle * 0.5f;
+        float deviation = UnityEngine.Random.Range(-halfCone, halfCone);
+        Vector2 direction = Quaternion.Euler(0f, 0f, deviation) * aimDir;
 
         _projectileManager.Spawn(
             slot.EquippedWeapon.ProjectilePrefab,
             transform.position,
-            direction,
-            slot.EquippedWeapon.ProjectileSpeed,
-            damage,
-            _enemyLayer,
-            slot.EquippedWeapon.IsVampiric,
-            slot.EquippedWeapon.VampiricHealAmount,
-            onVampiricHeal);
+            BuildConfig(slot, direction, damage, bulletSizeMult, onHeal));
+    }
 
-        AudioManager.Instance.PlaySFX(
-            slot.EquippedWeapon.FireSFX ?? _audioData.ShootDefault);
+    private void FireFan(WeaponSlot slot, Vector2 aimDir, float damage,
+        float bulletSizeMult, Action<float> onHeal)
+    {
+        int count = slot.EffectiveBulletCount;
+        float totalSpread = slot.EquippedWeapon.FanSpreadAngle;
+        float step = count > 1 ? totalSpread / (count - 1) : 0f;
+        float startAngle = -totalSpread * 0.5f;
 
-        slot.StartCooldown();
+        for (int i = 0; i < count; i++)
+        {
+            float angle = startAngle + step * i;
+            Vector2 dir = Quaternion.Euler(0f, 0f, angle) * aimDir;
+            _projectileManager.Spawn(
+                slot.EquippedWeapon.ProjectilePrefab,
+                transform.position,
+                BuildConfig(slot, dir, damage, bulletSizeMult, onHeal));
+        }
+    }
+
+    private ProjectileConfig BuildConfig(WeaponSlot slot, Vector2 direction,
+        float damage, float bulletSizeMult, Action<float> onHeal)
+    {
+        WeaponData weapon = slot.EquippedWeapon;
+        UpgradeRegistry upgrades = _runData?.Upgrades;
+        int poisonMaxStacks = _runConfig != null ? _runConfig.PoisonMaxStacks : 8;
+        float zapRadius = _runConfig != null ? _runConfig.ZapperChainSearchRadius : 5f;
+
+        return new ProjectileConfig
+        {
+            Direction              = direction,
+            Speed                  = weapon.ProjectileSpeed,
+            Damage                 = damage,
+            TargetLayer            = _enemyLayer,
+            BulletSizeMultiplier   = bulletSizeMult,
+            VampiricHealPercent    = weapon.IsVampiric ? slot.EffectiveVampiricPercent : 0f,
+            OnHealPlayer           = onHeal,
+            ExplosionRadius        = weapon.WeaponType == WeaponType.Area
+                                        ? slot.EffectiveExplosionRadius : 0f,
+            ExplosionDamagePercent = weapon.ExplosionDamagePercent,
+            ChainCount             = weapon.WeaponType == WeaponType.Zapper
+                                        ? slot.EffectiveChainCount : 0,
+            ChainDamagePercents    = weapon.ChainDamagePercents,
+            ChainSearchRadius      = zapRadius,
+            PoisonTickPercent      = weapon.WeaponType == WeaponType.Poison
+                                        ? slot.EffectivePoisonTickPercent : 0f,
+            PoisonMode             = slot.EffectivePoisonMode,
+            PoisonMaxStacks        = poisonMaxStacks,
+        };
     }
 
 }
