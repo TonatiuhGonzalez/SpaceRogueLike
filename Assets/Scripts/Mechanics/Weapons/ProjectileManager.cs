@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,25 +7,16 @@ public class ProjectileManager : MonoBehaviour
 
     private readonly Dictionary<Projectile, ObjectPool<Projectile>> _pools = new();
 
-    public Projectile Spawn(
-        Projectile prefab,
-        Vector2 position,
-        Vector2 direction,
-        float speed,
-        float damage,
-        LayerMask targetLayer,
-        bool isVampiric = false,
-        float vampireHeal = 0f,
-        Action<float> onVampiricHeal = null)
+    public Projectile Spawn(Projectile prefab, Vector2 position, ProjectileConfig config)
     {
         if (prefab == null) return null;
 
         ObjectPool<Projectile> pool = GetOrCreatePool(prefab);
         Projectile proj = pool.Get();
         proj.transform.position = position;
-        proj.Initialize(direction, speed, damage, targetLayer,
-            isVampiric, vampireHeal, onVampiricHeal,
-            () => pool.Return(proj));
+
+        config.OnReturn = () => pool.Return(proj);
+        proj.Initialize(config);
         return proj;
     }
 

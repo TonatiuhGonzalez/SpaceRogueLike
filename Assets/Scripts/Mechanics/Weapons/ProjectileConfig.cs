@@ -16,6 +16,7 @@ public struct ProjectileConfig
 
     public int ChainCount;
     public float[] ChainDamagePercents;
+    public float ChainSearchRadius;
 
     public float PoisonTickPercent;
     public PoisonMode PoisonMode;
