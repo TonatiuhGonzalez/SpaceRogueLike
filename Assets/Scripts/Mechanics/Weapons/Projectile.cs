@@ -23,6 +23,8 @@ public class Projectile : MonoBehaviour
         Action onReturn = null)
     {
         _direction = direction.normalized;
+        float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
         _speed = speed;
         _damage = damage;
         _targetLayer = targetLayer;

@@ -30,6 +30,12 @@ public class ProjectileManager : MonoBehaviour
         return proj;
     }
 
+    public void ClearAllProjectiles()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+            transform.GetChild(i).gameObject.SetActive(false);
+    }
+
     private ObjectPool<Projectile> GetOrCreatePool(Projectile prefab)
     {
         if (!_pools.TryGetValue(prefab, out ObjectPool<Projectile> pool))

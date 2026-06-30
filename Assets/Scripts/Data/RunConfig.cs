@@ -15,4 +15,5 @@ public class RunConfig : ScriptableObject
     [Header("Enemy")]
     public float WarperSafeZoneRadius = 3f;
     public float SpawnDelayBetweenEnemies = 0.3f;
+    public float MinEnemySpawnDistance = 5f;
 }

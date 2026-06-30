@@ -9,8 +9,9 @@ public class EnemyDodgeState : EnemyChaseState
     private Vector2 _dodgeOffset;
     private LayerMask _projectileLayer;
 
-    public EnemyDodgeState(EnemyMovement movement, EnemyShooter shooter, Transform player)
-        : base(movement, shooter, player)
+    public EnemyDodgeState(EnemyMovement movement, EnemyShooter shooter,
+        Transform player, EnemyData data)
+        : base(movement, shooter, player, data)
     {
         _projectileLayer = LayerMask.GetMask("PlayerProjectile");
     }
@@ -26,8 +27,16 @@ public class EnemyDodgeState : EnemyChaseState
             _dodgeOffset = CalculateDodgeOffset();
         }
 
-        Vector2 target = (Vector2)_player.position + _dodgeOffset;
-        _movement.MoveToward(target);
+        float distance = Vector2.Distance(_movement.Position, _player.position);
+
+        if (distance <= _baseRange)
+            _movement.Stop();
+        else
+        {
+            Vector2 target = (Vector2)_player.position + _dodgeOffset;
+            _movement.MoveToward(target);
+        }
+
         _shooter.TryShoot();
     }
 

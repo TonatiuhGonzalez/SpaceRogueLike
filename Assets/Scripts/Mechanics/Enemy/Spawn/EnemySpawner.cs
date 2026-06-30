@@ -11,6 +11,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private BoxCollider2D _mapBounds;
     [SerializeField] private Transform _playerTransform;
     [SerializeField] private HealthPackPool _healthPackPool;
+    [SerializeField] private ProjectileManager _projectileManager;
 
     public event Action<EnemyHealth> OnEnemySpawned;
     public int SpawnedCount { get; private set; }
@@ -47,15 +48,25 @@ public class EnemySpawner : MonoBehaviour
     private Vector2 GetRandomBorderPosition()
     {
         Bounds bounds = _mapBounds.bounds;
-        int side = UnityEngine.Random.Range(0, 4);
+        float minDistSqr = _runConfig.MinEnemySpawnDistance * _runConfig.MinEnemySpawnDistance;
+        Vector2 pos = Vector2.zero;
 
-        return side switch
+        for (int attempt = 0; attempt < 10; attempt++)
         {
-            0 => new Vector2(UnityEngine.Random.Range(bounds.min.x, bounds.max.x), bounds.max.y),
-            1 => new Vector2(UnityEngine.Random.Range(bounds.min.x, bounds.max.x), bounds.min.y),
-            2 => new Vector2(bounds.max.x, UnityEngine.Random.Range(bounds.min.y, bounds.max.y)),
-            _ => new Vector2(bounds.min.x, UnityEngine.Random.Range(bounds.min.y, bounds.max.y))
-        };
+            int side = UnityEngine.Random.Range(0, 4);
+            pos = side switch
+            {
+                0 => new Vector2(UnityEngine.Random.Range(bounds.min.x, bounds.max.x), bounds.max.y),
+                1 => new Vector2(UnityEngine.Random.Range(bounds.min.x, bounds.max.x), bounds.min.y),
+                2 => new Vector2(bounds.max.x, UnityEngine.Random.Range(bounds.min.y, bounds.max.y)),
+                _ => new Vector2(bounds.min.x, UnityEngine.Random.Range(bounds.min.y, bounds.max.y))
+            };
+
+            if (((Vector2)_playerTransform.position - pos).sqrMagnitude >= minDistSqr)
+                return pos;
+        }
+
+        return pos;
     }
 
     private void SpawnEnemy(EnemyType type, Vector2 position, LevelEntry entry, float assignedAngle)
@@ -68,7 +79,7 @@ public class EnemySpawner : MonoBehaviour
         enemy.Initialize(
             enemy.Data, entry.AiTier,
             entry.HpMultiplier, entry.SpeedMultiplier, entry.FireRateMultiplier,
-            _playerTransform, _pool, _runConfig, assignedAngle);
+            _playerTransform, _pool, _runConfig, _projectileManager, assignedAngle);
 
         if (_healthPackPool != null)
             enemy.Health.OnDiedAtPosition += _healthPackPool.TrySpawnAt;

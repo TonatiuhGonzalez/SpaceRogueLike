@@ -9,10 +9,14 @@ public class ShipCardUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _nameText;
     [SerializeField] private TextMeshProUGUI _statsText;
     [SerializeField] private Button _selectButton;
-    [SerializeField] private GameObject _selectedIndicator;
-
+    [SerializeField] private Outline _outline;
     private ShipArchetypeData _data;
     private Action<ShipArchetypeData> _onSelected;
+
+    private void Awake()
+    {
+        _outline = GetComponent<Outline>();
+    }
 
     private void OnEnable()
     {
@@ -37,7 +41,7 @@ public class ShipCardUI : MonoBehaviour
 
     public void SetSelected(bool selected)
     {
-        _selectedIndicator.SetActive(selected);
+        _outline.enabled = selected;
     }
 
     private void OnSelectPressed() => _onSelected?.Invoke(_data);

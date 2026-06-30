@@ -61,6 +61,20 @@ public class LevelManager : MonoBehaviour
             LevelCompleted();
     }
 
+    public void ClearAllEnemies()
+    {
+        foreach (var enemy in _trackedEnemies)
+        {
+            if (enemy != null)
+            {
+                enemy.OnDied -= HandleEnemyDied;
+                enemy.gameObject.SetActive(false);
+            }
+        }
+        _trackedEnemies.Clear();
+        _enemiesAlive = 0;
+    }
+
     private void LevelCompleted()
     {
         AudioManager.Instance.PlaySFX(_audioData.LevelComplete);
