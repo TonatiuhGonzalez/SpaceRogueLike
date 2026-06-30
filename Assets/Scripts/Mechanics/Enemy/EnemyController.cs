@@ -58,7 +58,6 @@ public class EnemyController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"OnTriggerEnter2D llamado en {gameObject.name}, tag={other.tag}, type={_data?.Type}");
         if (_data.Type != EnemyType.Chaser) return;
         if (!other.CompareTag("Player")) return;
 
@@ -77,7 +76,6 @@ public class EnemyController : MonoBehaviour
 
     private void HandleDied()
     {
-        Debug.Log($"HandleDied llamado, ownerPool={_ownerPool}");
         _ownerPool?.Return(this);
     }
 

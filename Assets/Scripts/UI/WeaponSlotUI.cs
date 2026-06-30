@@ -8,7 +8,6 @@ public class WeaponSlotUI : MonoBehaviour
 
     public void Refresh(WeaponSlot slot)
     {
-        Debug.Log($"slot={slot} weaponIcon={_weaponIcon} emptyIndicator={_emptyIndicator}");
         bool hasWeapon = !slot.IsEmpty;
         _weaponIcon.gameObject.SetActive(hasWeapon);
         _emptyIndicator.SetActive(!hasWeapon);

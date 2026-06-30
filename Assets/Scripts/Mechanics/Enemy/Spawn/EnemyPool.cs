@@ -31,7 +31,6 @@ public class EnemyPool : MonoBehaviour
     public void Return(EnemyController enemy)
     {
         if (enemy == null) return;
-        Debug.Log($"Return llamado para {enemy.name}, SetActive(false) próximo");
         int index = (int)enemy.Data.Type;
         if (index >= 0 && index < _pools.Length && _pools[index] != null)
             _pools[index].Return(enemy);
