@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody2D _rb;
     private float _moveSpeed;
+    private bool _movementEnabled = true;
 
     private void Awake()
     {
@@ -18,8 +19,16 @@ public class PlayerMovement : MonoBehaviour
         _moveSpeed = moveSpeed;
     }
 
+    public void SetMovementEnabled(bool enabled)
+    {
+        _movementEnabled = enabled;
+        if (!enabled && _rb != null)
+            _rb.linearVelocity = Vector2.zero;
+    }
+
     private void FixedUpdate()
     {
+        if (!_movementEnabled) return;
         _rb.linearVelocity = _inputReader.MoveInput * _moveSpeed;
     }
 }

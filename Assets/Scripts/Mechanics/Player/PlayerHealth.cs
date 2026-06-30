@@ -43,5 +43,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         _isDead = true;
         OnDied?.Invoke();
+        gameObject.SetActive(false);
     }
 }

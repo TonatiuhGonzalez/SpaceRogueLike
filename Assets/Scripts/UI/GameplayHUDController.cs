@@ -36,8 +36,14 @@ public class GameplayHUDController : MonoBehaviour
 
     private void Start()
     {
-        UpdateHealthBar(_playerHealth.HealthPercent);
-        UpdateWeaponSlots(_weaponController.GetSlots());
+        UpdateHealthBar(_playerHealth != null ? _playerHealth.HealthPercent : 1f);
+
+        if (_weaponController != null)
+        {
+            var slots = _weaponController.GetSlots();
+            if (slots != null)
+                UpdateWeaponSlots(slots);
+        }
     }
 
     private void UpdateHealthBar(float percent)
@@ -54,6 +60,9 @@ public class GameplayHUDController : MonoBehaviour
     private void UpdateWeaponSlots(WeaponSlot[] slots)
     {
         for (int i = 0; i < _weaponSlotUIs.Length && i < slots.Length; i++)
-            _weaponSlotUIs[i].Refresh(slots[i]);
+        {
+            if (slots[i] != null)
+                _weaponSlotUIs[i].Refresh(slots[i]);
+        }
     }
 }

@@ -27,6 +27,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable
             Die();
     }
 
+    public void ForceKill()
+    {
+        if (_isDead) return;
+        _currentHealth = 0f;
+        Die();
+    }
+
     private void Die()
     {
         _isDead = true;

@@ -20,6 +20,15 @@ public class DamageNumberPool : MonoBehaviour
     public void Spawn(Vector2 worldPos, float amount, bool isHeal)
     {
         DamageNumber number = _pool.Get();
-        number.Initialize(worldPos, amount, isHeal, () => _pool.Return(number));
+
+        Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPos);
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            _poolParent as RectTransform,
+            screenPos,
+            null,
+            out Vector2 localPos);
+
+        number.Initialize(localPos, amount, isHeal, () => _pool.Return(number));
     }
 }

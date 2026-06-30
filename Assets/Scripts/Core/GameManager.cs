@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LevelManager _levelManager;
     [SerializeField] private PlayerController _playerController;
     [SerializeField] private WeaponSelectionController _weaponSelectionController;
+    [SerializeField] private ProjectileManager _projectileManager;
 
     public GameState CurrentState { get; private set; }
 
@@ -73,6 +74,7 @@ public class GameManager : MonoBehaviour
     private void HandleLevelCompleted()
     {
         _runData.CurrentLevel++;
+        _projectileManager.ClearAllProjectiles();
         SetState(GameState.WeaponSelection);
         ScreenManager.Instance.ShowScreen(GameScreen.WeaponSelection);
         _weaponSelectionController.Show();
@@ -88,17 +90,25 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState != GameState.Playing) return;
         SetState(GameState.Dead);
+        _projectileManager.ClearAllProjectiles();
+        _levelManager.ClearAllEnemies();
         ScreenManager.Instance.ShowScreen(GameScreen.Death);
         AudioManager.Instance.PlaySFX(_audioData.PlayerDeath);
     }
 
     public void StartLevel()
     {
+        SetState(GameState.Playing);
         _levelManager.StartLevel();
     }
 
     private void SetState(GameState newState)
     {
+        if (_playerController != null)
+        {
+            _playerController.SetMovementEnabled(newState == GameState.Playing);
+        }
+
         CurrentState = newState;
         OnStateChanged?.Invoke(newState);
     }
