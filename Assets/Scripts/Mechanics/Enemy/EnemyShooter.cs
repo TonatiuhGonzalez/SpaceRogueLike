@@ -27,23 +27,23 @@ public class EnemyShooter : MonoBehaviour
         float sqrDist = ((Vector2)_playerTransform.position - (Vector2)transform.position).sqrMagnitude;
         if (sqrDist > _data.BaseRange * _data.BaseRange) return;
 
-        Debug.Log($"fireInterval={_fireInterval} cooldown={_cooldown} después de spawn: {_cooldown + _fireInterval}");
         _cooldown -= Time.deltaTime;
         if (_cooldown > 0f) return;
 
         Vector2 direction = ((Vector2)_playerTransform.position - (Vector2)transform.position).normalized;
 
-        _projectileManager.Spawn(
-            _data.ProjectilePrefab,
-            transform.position,
-            direction,
-            _data.BaseProjectileSpeed,
-            _data.BaseDamage,
-            _playerLayer);
+        ProjectileConfig config = new()
+        {
+            Direction    = direction,
+            Speed        = _data.BaseProjectileSpeed,
+            Damage       = _data.BaseDamage,
+            TargetLayer  = _playerLayer,
+            BulletSizeMultiplier = 1f,
+        };
 
+        _projectileManager.Spawn(_data.ProjectilePrefab, transform.position, config);
         AudioManager.Instance.PlaySFX(_audioData.ShootDefault);
         _cooldown += _fireInterval;
-        Debug.Log($"cooldown reseteado a: {_cooldown}");
     }
 
     private void OnDisable()
