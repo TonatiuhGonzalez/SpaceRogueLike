@@ -65,10 +65,10 @@ public class GameManager : MonoBehaviour
         _runData.ResetForNewRun();
         _runData.SelectedArchetype = archetype;
         _playerController.Initialize(archetype);
+        SetState(GameState.Playing);
+        ScreenManager.Instance.ShowScreen(GameScreen.Gameplay);
+        _levelManager.StartLevel();
         OnRunStarted?.Invoke(archetype);
-        SetState(GameState.WeaponSelection);
-        ScreenManager.Instance.ShowScreen(GameScreen.WeaponSelection);
-        _weaponSelectionController.Show();
     }
 
     private void HandleLevelCompleted()
