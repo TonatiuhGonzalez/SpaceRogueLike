@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
         gameObject.SetActive(true);
         _movement.Initialize(archetype.MoveSpeed);
         _health.Initialize(archetype.MaxHealth);
-        _weaponController.SetDamageMultiplier(archetype.DamageMultiplier);
+        _weaponController.SetArchetypeMultiplier(archetype.DamageMultiplier);
         _weaponController.EquipWeapon(_starterWeapon, 0);
     }
 }

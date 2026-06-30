@@ -17,8 +17,11 @@ public class WeaponController : MonoBehaviour
 
     private const int MAX_SLOTS = 3;
     private readonly WeaponSlot[] _slots = new WeaponSlot[MAX_SLOTS];
+    private float _archetypeMultiplier = 1f;
 
     public event Action<WeaponSlot[]> OnSlotsChanged;
+
+    public void SetArchetypeMultiplier(float multiplier) => _archetypeMultiplier = multiplier;
 
     private void Awake()
     {
@@ -101,7 +104,8 @@ public class WeaponController : MonoBehaviour
         UpgradeRegistry upgrades = _runData?.Upgrades;
 
         float damage = weapon.Damage *
-            (upgrades?.GetGenericMultiplier(GenericStat.Damage) ?? 1f);
+            (upgrades?.GetGenericMultiplier(GenericStat.Damage) ?? 1f) *
+            _archetypeMultiplier;
         float bulletSizeMult =
             upgrades?.GetGenericMultiplier(GenericStat.BulletSize) ?? 1f;
 
