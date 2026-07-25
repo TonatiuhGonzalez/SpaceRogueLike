@@ -30,6 +30,7 @@ public class WeaponData : ScriptableObject
     [Header("Zapper")]
     public int ChainCount = 2;
     public float[] ChainDamagePercents;
+    public float ChainDelay = 0.2f;
 
     [Header("Vampiric")]
     public bool IsVampiric;

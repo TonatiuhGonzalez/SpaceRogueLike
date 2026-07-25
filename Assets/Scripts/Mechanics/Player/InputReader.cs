@@ -22,4 +22,10 @@ public class InputReader : MonoBehaviour
         AimInput = value.Get<Vector2>();
         OnAimChanged?.Invoke(AimInput);
     }
+
+    public void ResetInput()
+    {
+        MoveInput = Vector2.zero;
+        AimInput = Vector2.zero;
+    }
 }

@@ -18,6 +18,7 @@ public class WeaponController : MonoBehaviour
     private const int MAX_SLOTS = 3;
     private readonly WeaponSlot[] _slots = new WeaponSlot[MAX_SLOTS];
     private float _archetypeMultiplier = 1f;
+    private int _activeSlotIndex = 0;
 
     public event Action<WeaponSlot[]> OnSlotsChanged;
 
@@ -43,7 +44,25 @@ public class WeaponController : MonoBehaviour
         OnSlotsChanged?.Invoke(_slots);
     }
 
+    public void ResetWeapons()
+    {
+        for (int i = 0; i < MAX_SLOTS; i++)
+            _slots[i].Clear();
+        _activeSlotIndex = 0;
+        OnSlotsChanged?.Invoke(_slots);
+    }
+
     public WeaponSlot[] GetSlots() => _slots;
+
+    public void SetActiveSlot(int index)
+    {
+        if (index < 0 || index >= MAX_SLOTS) return;
+        if (_slots[index].IsEmpty) return;
+        _activeSlotIndex = index;
+        OnSlotsChanged?.Invoke(_slots);
+    }
+
+    public int ActiveSlotIndex => _activeSlotIndex;
 
     public int FindFirstEmptySlot()
     {
@@ -86,12 +105,12 @@ public class WeaponController : MonoBehaviour
             ? _runData.Upgrades.GetGenericMultiplier(GenericStat.FireRate)
             : 1f;
 
-        for (int i = 0; i < MAX_SLOTS; i++)
-        {
-            _slots[i].Tick(Time.deltaTime);
-            if (_slots[i].IsReady)
-                TryFire(_slots[i], fireRateMult);
-        }
+        WeaponSlot activeSlot = _slots[_activeSlotIndex];
+        if (activeSlot.IsEmpty) return;
+
+        activeSlot.Tick(Time.deltaTime);
+        if (activeSlot.IsReady)
+            TryFire(activeSlot, fireRateMult);
     }
 
     private void TryFire(WeaponSlot slot, float fireRateMult)
@@ -179,7 +198,7 @@ public class WeaponController : MonoBehaviour
         WeaponData weapon = slot.EquippedWeapon;
         UpgradeRegistry upgrades = _runData?.Upgrades;
         int poisonMaxStacks = _runConfig != null ? _runConfig.PoisonMaxStacks : 8;
-        float zapRadius = _runConfig != null ? _runConfig.ZapperChainSearchRadius : 5f;
+        float zapRadius = _runConfig != null ? _runConfig.ZapperChainSearchRadius : 15f;
 
         return new ProjectileConfig
         {
@@ -197,6 +216,8 @@ public class WeaponController : MonoBehaviour
                                         ? slot.EffectiveChainCount : 0,
             ChainDamagePercents    = weapon.ChainDamagePercents,
             ChainSearchRadius      = zapRadius,
+            ChainDelay             = weapon.ChainDelay,
+            ProjectileManager      = _projectileManager,
             PoisonTickPercent      = weapon.WeaponType == WeaponType.Poison
                                         ? slot.EffectivePoisonTickPercent : 0f,
             PoisonMode             = slot.EffectivePoisonMode,

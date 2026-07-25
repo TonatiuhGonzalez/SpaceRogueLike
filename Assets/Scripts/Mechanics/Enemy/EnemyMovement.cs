@@ -7,6 +7,7 @@ public class EnemyMovement : MonoBehaviour
     private float _moveSpeed;
 
     public Vector2 Position => _rb.position;
+    public float FormationAngle { get; set; }
 
     private void Awake()
     {

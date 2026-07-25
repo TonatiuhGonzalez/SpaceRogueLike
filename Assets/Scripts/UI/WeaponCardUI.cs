@@ -9,7 +9,6 @@ public class WeaponCardUI : MonoBehaviour
     [SerializeField] private Image _icon;
     [SerializeField] private TextMeshProUGUI _nameText;
     [SerializeField] private TextMeshProUGUI _effectsText;
-    [SerializeField] private TextMeshProUGUI _typeBadgeText;
     [SerializeField] private Image _typeBadgeImage;
     [SerializeField] private Button _selectButton;
 
@@ -18,9 +17,10 @@ public class WeaponCardUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _fireRateText;
     [SerializeField] private TextMeshProUGUI _rangeText;
 
-    [Header("Badge Colors")]
-    [SerializeField] private Color _weaponBadgeColor = new(0.2f, 0.4f, 0.9f);
-    [SerializeField] private Color _upgradeBadgeColor = new(0.85f, 0.65f, 0.1f);
+    [Header("Badge Icons")]
+    [SerializeField] private Sprite _weaponTypeIcon;
+    [SerializeField] private Sprite _genericUpgradeIcon;
+    [SerializeField] private Sprite _specificUpgradeIcon;
 
     private SelectionOffer _offer;
     private Action<SelectionOffer> _onSelected;
@@ -64,8 +64,7 @@ public class WeaponCardUI : MonoBehaviour
         if (_fireRateText != null) _fireRateText.text = $"RATE: {data.FireRate:0.0}/s";
         if (_rangeText != null)  _rangeText.text = $"RANGE: {data.Range:0.0}";
         if (_effectsText != null) _effectsText.text = BuildWeaponEffectText(data);
-        if (_typeBadgeText != null) _typeBadgeText.text = "ARMA";
-        if (_typeBadgeImage != null) _typeBadgeImage.color = _weaponBadgeColor;
+        if (_typeBadgeImage != null) _typeBadgeImage.sprite = _weaponTypeIcon;
 
         SetWeaponStatsVisible(true);
     }
@@ -80,8 +79,10 @@ public class WeaponCardUI : MonoBehaviour
             desc += $"\nPara: {data.TargetWeaponType}";
 
         if (_effectsText != null) _effectsText.text = desc;
-        if (_typeBadgeText != null) _typeBadgeText.text = "MEJORA";
-        if (_typeBadgeImage != null) _typeBadgeImage.color = _upgradeBadgeColor;
+        if (_typeBadgeImage != null)
+            _typeBadgeImage.sprite = data.Category == UpgradeCategory.Generic
+                ? _genericUpgradeIcon
+                : _specificUpgradeIcon;
 
         SetWeaponStatsVisible(false);
     }
@@ -109,4 +110,24 @@ public class WeaponCardUI : MonoBehaviour
     }
 
     private void OnSelectPressed() => _onSelected?.Invoke(_offer);
+
+    public void SetupCurrentWeapon(WeaponData weapon)
+    {
+        if (_icon != null)       _icon.sprite = weapon.Icon;
+        if (_nameText != null)   _nameText.text = weapon.WeaponName;
+        if (_damageText != null) _damageText.text = $"Damage: {weapon.Damage}";
+        if (_fireRateText != null) _fireRateText.text = $"Fire Rate: {weapon.FireRate}";
+        if (_rangeText != null)  _rangeText.text = $"Range: {weapon.Range}";
+        if (_selectButton != null) _selectButton.gameObject.SetActive(false);
+    }
+
+    public void SetupEmpty()
+    {
+        if (_nameText != null)   _nameText.text = "Empty Slot";
+        if (_icon != null)       _icon.sprite = null;
+        if (_damageText != null) _damageText.text = "";
+        if (_fireRateText != null) _fireRateText.text = "";
+        if (_rangeText != null)  _rangeText.text = "";
+        if (_selectButton != null) _selectButton.gameObject.SetActive(false);
+    }
 }

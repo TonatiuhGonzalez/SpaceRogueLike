@@ -22,4 +22,14 @@ public class HealthPackPool : MonoBehaviour
         pack.Initialize(position, () => _pool.Return(pack));
         AudioManager.Instance.PlaySFX(_audioData.HealthPackDrop);
     }
+
+    public void ClearAllHealthPacks()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            var child = transform.GetChild(i);
+            if (child.gameObject.activeSelf)
+                child.gameObject.SetActive(false);
+        }
+    }
 }
