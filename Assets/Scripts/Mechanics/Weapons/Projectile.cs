@@ -1,37 +1,22 @@
-using System;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
+    private ProjectileConfig _config;
     private Vector2 _direction;
     private float _speed;
-    private float _damage;
-    private LayerMask _targetLayer;
-    private bool _isVampiric;
-    private float _vampireHeal;
-    private Action<float> _onVampiricHeal;
-    private Action _onReturn;
 
-    public void Initialize(
-        Vector2 direction,
-        float speed,
-        float damage,
-        LayerMask targetLayer,
-        bool isVampiric = false,
-        float vampireHeal = 0f,
-        Action<float> onVampiricHeal = null,
-        Action onReturn = null)
+    public void Initialize(ProjectileConfig config)
     {
-        _direction = direction.normalized;
+        _config = config;
+        _direction = config.Direction.normalized;
+        _speed = config.Speed;
+
         float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg - 90f;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
-        _speed = speed;
-        _damage = damage;
-        _targetLayer = targetLayer;
-        _isVampiric = isVampiric;
-        _vampireHeal = vampireHeal;
-        _onVampiricHeal = onVampiricHeal;
-        _onReturn = onReturn;
+
+        float scale = Mathf.Max(0.01f, config.BulletSizeMultiplier);
+        transform.localScale = Vector3.one * scale;
     }
 
     private void Update()
@@ -41,25 +26,82 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (((1 << other.gameObject.layer) & _targetLayer) == 0) return;
+        if (((1 << other.gameObject.layer) & _config.TargetLayer) == 0) return;
 
         if (other.TryGetComponent<IDamageable>(out var damageable))
-            damageable.TakeDamage(_damage);
+            damageable.TakeDamage(_config.Damage);
 
-        DamageNumberPool.Instance.Spawn(transform.position, _damage, false);
+        DamageNumberPool.Instance.Spawn(transform.position, _config.Damage, false);
 
-        if (_isVampiric)
+        ApplyVampiric();
+        ApplyArea(other);
+        ApplyZapper(other);
+        ApplyPoison(other);
+
+        _config.OnReturn?.Invoke();
+    }
+
+    private void ApplyVampiric()
+    {
+        if (_config.VampiricHealPercent <= 0f) return;
+
+        float healAmt = _config.Damage * _config.VampiricHealPercent;
+        _config.OnHealPlayer?.Invoke(healAmt);
+        DamageNumberPool.Instance.Spawn(transform.position, healAmt, true);
+    }
+
+    private void ApplyArea(Collider2D primaryHit)
+    {
+        if (_config.ExplosionRadius <= 0f) return;
+
+        WeaponEffectsPool.Instance.SpawnAreaExplosion(transform.position, _config.ExplosionRadius);
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position, _config.ExplosionRadius, _config.TargetLayer);
+
+        float splashDamage = _config.Damage * _config.ExplosionDamagePercent;
+        foreach (Collider2D col in hits)
         {
-            _onVampiricHeal?.Invoke(_vampireHeal);
-            DamageNumberPool.Instance.Spawn(transform.position, _vampireHeal, true);
+            if (col == primaryHit) continue;
+            if (col.TryGetComponent<IDamageable>(out var d))
+            {
+                d.TakeDamage(splashDamage);
+                DamageNumberPool.Instance.Spawn(col.transform.position, splashDamage, false);
+            }
         }
+    }
 
-        _onReturn?.Invoke();
+    private void ApplyZapper(Collider2D primaryHit)
+    {
+        if (_config.ChainCount <= 0 || _config.ChainDamagePercents == null) return;
+        if (_config.ProjectileManager == null) return;
+
+        _config.ProjectileManager.RunZapperChain(new ZapperChainRequest
+        {
+            PrimaryHit          = primaryHit,
+            OriginPosition      = primaryHit.transform.position,
+            Damage              = _config.Damage,
+            ChainCount          = _config.ChainCount,
+            ChainDamagePercents = _config.ChainDamagePercents,
+            SearchRadius        = _config.ChainSearchRadius,
+            Delay               = _config.ChainDelay,
+            TargetLayer         = _config.TargetLayer,
+        });
+    }
+
+    private void ApplyPoison(Collider2D primaryHit)
+    {
+        if (_config.PoisonTickPercent <= 0f) return;
+
+        float tickDamage = _config.Damage * _config.PoisonTickPercent;
+        primaryHit.GetComponent<PoisonStatus>()?.ApplyPoison(
+            tickDamage, _config.PoisonMode, _config.PoisonMaxStacks);
     }
 
     private void OnDisable()
     {
-        _onReturn = null;
-        _onVampiricHeal = null;
+        _config.OnReturn = null;
+        _config.OnHealPlayer = null;
+        transform.localScale = Vector3.one;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,82 +7,114 @@ public class WeaponSelectionController : MonoBehaviour
     [Header("Offer Cards")]
     [SerializeField] private WeaponCardUI[] _offerCards;
 
-    [Header("Swap Panel")]
-    [SerializeField] private GameObject _swapPanel;
+    [Header("Current Slot Cards")]
     [SerializeField] private WeaponCardUI[] _currentSlotCards;
+
+    [Header("Controls")]
+    [SerializeField] private Button _skipButton;
 
     [Header("Dependencies")]
     [SerializeField] private WeaponController _weaponController;
-    [SerializeField] private WeaponData[] _weaponPool;
+    [SerializeField] private WeaponData[] _allWeaponData;
+    [SerializeField] private WeaponUpgradeData[] _upgradePool;
+    [SerializeField] private RunData _runData;
+    [SerializeField] private RunConfig _runConfig;
     [SerializeField] private AudioData _audioData;
 
-    private WeaponData _pendingWeapon;
+    private WeaponSelectionLogic _logic;
+    private bool _hasSelected;
+
+    private void Awake()
+    {
+        _logic = new WeaponSelectionLogic(_runConfig);
+    }
+
+    private void OnEnable()
+    {
+        _skipButton.onClick.AddListener(OnSkipPressed);
+    }
+
+    private void OnDisable()
+    {
+        _skipButton.onClick.RemoveListener(OnSkipPressed);
+    }
 
     public void Show()
     {
-        _swapPanel.SetActive(false);
-        _pendingWeapon = null;
+        _hasSelected = false;
 
-        WeaponData[] offers = PickRandomOffers();
+        List<WeaponData> available = GetAvailableWeapons();
+        List<WeaponType> ownedTypes = _weaponController.GetOwnedWeaponTypes();
+
+        SelectionOffer[] offers = _logic.BuildOffers(
+            _runData.CurrentLevel,
+            available,
+            ownedTypes,
+            _upgradePool,
+            _runData.Upgrades);
+
         for (int i = 0; i < _offerCards.Length && i < offers.Length; i++)
-            _offerCards[i].Setup(offers[i], OnWeaponChosen);
-    }
+            _offerCards[i].Setup(offers[i], OnOfferChosen);
 
-    private WeaponData[] PickRandomOffers()
-    {
-        int count = Mathf.Min(_offerCards.Length, _weaponPool.Length);
-        WeaponData[] shuffled = (WeaponData[])_weaponPool.Clone();
-
-        for (int i = shuffled.Length - 1; i > 0; i--)
-        {
-            int j = Random.Range(0, i + 1);
-            (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
-        }
-
-        WeaponData[] result = new WeaponData[count];
-        System.Array.Copy(shuffled, result, count);
-        return result;
-    }
-
-    private void OnWeaponChosen(WeaponData chosen)
-    {
-        AudioManager.Instance.PlaySFX(_audioData.ButtonClick);
-        int emptySlot = _weaponController.FindFirstEmptySlot();
-
-        if (emptySlot >= 0)
-        {
-            EquipAndContinue(chosen, emptySlot);
-        }
-        else
-        {
-            _pendingWeapon = chosen;
-            ShowSwapPanel();
-        }
-    }
-
-    private void ShowSwapPanel()
-    {
-        _swapPanel.SetActive(true);
         WeaponSlot[] slots = _weaponController.GetSlots();
         for (int i = 0; i < _currentSlotCards.Length && i < slots.Length; i++)
         {
-            int slotIndex = i;
-            _currentSlotCards[i].Setup(slots[i].EquippedWeapon,
-                _ => OnSlotChosen(slotIndex));
+            if (!slots[i].IsEmpty)
+                _currentSlotCards[i].SetupCurrentWeapon(slots[i].EquippedWeapon);
+            else
+                _currentSlotCards[i].SetupEmpty();
         }
     }
 
-    private void OnSlotChosen(int slotIndex)
+    private List<WeaponData> GetAvailableWeapons()
     {
-        if (_pendingWeapon == null) return;
-        EquipAndContinue(_pendingWeapon, slotIndex);
+        var available = new List<WeaponData>();
+        foreach (WeaponData weapon in _allWeaponData)
+        {
+            if (!_runData.OwnedWeaponTypes.Contains(weapon.WeaponType))
+                available.Add(weapon);
+        }
+        return available;
     }
 
-    private void EquipAndContinue(WeaponData weapon, int slotIndex)
+    private void OnOfferChosen(SelectionOffer offer)
     {
-        _weaponController.EquipWeapon(weapon, slotIndex);
-        _swapPanel.SetActive(false);
-        _pendingWeapon = null;
+        if (_hasSelected || offer == null) return;
+        _hasSelected = true;
+
+        AudioManager.Instance.PlaySFX(_audioData.ButtonClick);
+
+        if (offer.Type == OfferType.Weapon)
+        {
+            int slot = _weaponController.FindFirstEmptySlot();
+            if (slot < 0) return;
+
+            _weaponController.EquipWeapon(offer.WeaponData, slot);
+            _runData.AddOwnedWeapon(offer.WeaponData.WeaponType);
+        }
+        else
+        {
+            WeaponUpgradeData upgrade = offer.UpgradeData;
+            if (upgrade.Category == UpgradeCategory.Generic)
+                _weaponController.ApplyGenericUpgrade(upgrade.Stat);
+            else
+                _weaponController.ApplySpecificUpgrade(upgrade.TargetWeaponType);
+        }
+
+        EquipAndContinue();
+    }
+
+    private void OnSkipPressed()
+    {
+        if (_hasSelected) return;
+        _hasSelected = true;
+
+        AudioManager.Instance.PlaySFX(_audioData.ButtonClick);
+        EquipAndContinue();
+    }
+
+    private void EquipAndContinue()
+    {
         ScreenManager.Instance.ShowScreen(GameScreen.Gameplay);
         GameManager.Instance.StartLevel();
     }

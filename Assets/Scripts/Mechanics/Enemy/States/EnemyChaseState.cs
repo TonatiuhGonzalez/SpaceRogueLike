@@ -27,7 +27,11 @@ public class EnemyChaseState : IState
         if (distance <= _baseRange)
             _movement.Stop();
         else
-            _movement.MoveToward(_player.position);
+        {
+            Vector2 arcTarget = (Vector2)_player.position
+                + MathUtils.AngleToDirection(_movement.FormationAngle) * _baseRange;
+            _movement.MoveToward(arcTarget);
+        }
 
         _shooter.TryShoot();
     }

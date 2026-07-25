@@ -25,6 +25,7 @@ public class GameplayHUDController : MonoBehaviour
         _playerHealth.OnHealthChanged += UpdateHealthBar;
         _levelManager.OnEnemyCountChanged += UpdateEnemyCount;
         _weaponController.OnSlotsChanged += UpdateWeaponSlots;
+        UpdateWeaponSlots(_weaponController.GetSlots());
     }
 
     private void OnDisable()
@@ -40,6 +41,9 @@ public class GameplayHUDController : MonoBehaviour
 
         if (_weaponController != null)
         {
+            for (int i = 0; i < _weaponSlotUIs.Length; i++)
+                _weaponSlotUIs[i].SetIndex(i, _weaponController);
+
             var slots = _weaponController.GetSlots();
             if (slots != null)
                 UpdateWeaponSlots(slots);
@@ -64,5 +68,8 @@ public class GameplayHUDController : MonoBehaviour
             if (slots[i] != null)
                 _weaponSlotUIs[i].Refresh(slots[i]);
         }
+
+        for (int i = 0; i < _weaponSlotUIs.Length; i++)
+            _weaponSlotUIs[i].SetActive(i == _weaponController.ActiveSlotIndex);
     }
 }

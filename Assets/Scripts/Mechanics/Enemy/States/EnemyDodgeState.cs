@@ -33,8 +33,10 @@ public class EnemyDodgeState : EnemyChaseState
             _movement.Stop();
         else
         {
-            Vector2 target = (Vector2)_player.position + _dodgeOffset;
-            _movement.MoveToward(target);
+            Vector2 arcTarget = (Vector2)_player.position
+                + MathUtils.AngleToDirection(_movement.FormationAngle) * _baseRange
+                + _dodgeOffset;
+            _movement.MoveToward(arcTarget);
         }
 
         _shooter.TryShoot();
