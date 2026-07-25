@@ -11,6 +11,7 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private AudioData _audioData;
 
     private int _enemiesAlive;
+    private bool _spawningComplete;
     private readonly List<EnemyHealth> _trackedEnemies = new();
 
     public event Action OnLevelCompleted;
@@ -22,22 +23,19 @@ public class LevelManager : MonoBehaviour
     private void OnEnable()
     {
         _spawner.OnEnemySpawned += TrackEnemy;
+        _spawner.OnSpawningComplete += HandleSpawningComplete;
     }
 
     private void OnDisable()
     {
         _spawner.OnEnemySpawned -= TrackEnemy;
+        _spawner.OnSpawningComplete -= HandleSpawningComplete;
     }
 
     public void StartLevel()
     {
-        foreach (var enemy in _trackedEnemies)
-        {
-            if (enemy != null)
-                enemy.OnDied -= HandleEnemyDied;
-        }
-        _trackedEnemies.Clear();
-        _enemiesAlive = 0;
+        ClearAllEnemies();
+        _spawningComplete = false;
 
         int levelIndex = _runData.CurrentLevel - 1;
         _spawner.StartLevel(levelIndex);
@@ -45,8 +43,12 @@ public class LevelManager : MonoBehaviour
 
     private void TrackEnemy(EnemyHealth health)
     {
+        health.OnDied -= HandleEnemyDied;
         health.OnDied += HandleEnemyDied;
-        _trackedEnemies.Add(health);
+
+        if (!_trackedEnemies.Contains(health))
+            _trackedEnemies.Add(health);
+
         _enemiesAlive++;
         OnEnemyCountChanged?.Invoke(_enemiesAlive);
     }
@@ -57,18 +59,26 @@ public class LevelManager : MonoBehaviour
         _enemiesAlive = Mathf.Max(0, _enemiesAlive - 1);
         OnEnemyCountChanged?.Invoke(_enemiesAlive);
 
+        if (_enemiesAlive == 0 && _spawningComplete)
+            LevelCompleted();
+    }
+
+    private void HandleSpawningComplete()
+    {
+        _spawningComplete = true;
         if (_enemiesAlive == 0)
             LevelCompleted();
     }
 
     public void ClearAllEnemies()
     {
-        foreach (var enemy in _trackedEnemies)
+        var enemiesToKill = new List<EnemyHealth>(_trackedEnemies);
+        foreach (var enemy in enemiesToKill)
         {
             if (enemy != null)
             {
                 enemy.OnDied -= HandleEnemyDied;
-                enemy.gameObject.SetActive(false);
+                enemy.ForceKill();
             }
         }
         _trackedEnemies.Clear();

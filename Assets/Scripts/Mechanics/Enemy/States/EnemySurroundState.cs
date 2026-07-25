@@ -5,7 +5,6 @@ public class EnemySurroundState : IState
     private readonly EnemyMovement _movement;
     private readonly EnemyShooter _shooter;
     private readonly Transform _player;
-    private readonly float _assignedAngle;
     private readonly EnemyAITier _tier;
 
     private float _currentRadius;
@@ -20,12 +19,11 @@ public class EnemySurroundState : IState
     private LayerMask _projectileLayer;
 
     public EnemySurroundState(EnemyMovement movement, EnemyShooter shooter,
-        Transform player, float assignedAngle, EnemyAITier tier)
+        Transform player, EnemyAITier tier)
     {
         _movement = movement;
         _shooter = shooter;
         _player = player;
-        _assignedAngle = assignedAngle;
         _tier = tier;
         _currentRadius = TARGET_RADIUS;
         _projectileLayer = LayerMask.GetMask("PlayerProjectile");
@@ -49,9 +47,7 @@ public class EnemySurroundState : IState
 
         _currentRadius = Mathf.Max(MIN_RADIUS, _currentRadius - CLOSE_SPEED * Time.deltaTime);
 
-        Vector2 orbitOffset = new Vector2(
-            Mathf.Cos(_assignedAngle * Mathf.Deg2Rad),
-            Mathf.Sin(_assignedAngle * Mathf.Deg2Rad)) * _currentRadius;
+        Vector2 orbitOffset = MathUtils.AngleToDirection(_movement.FormationAngle) * _currentRadius;
 
         Vector2 targetPos = (Vector2)_player.position + orbitOffset + _dodgeOffset;
         float sqrDist = ((Vector2)_movement.Position - targetPos).sqrMagnitude;

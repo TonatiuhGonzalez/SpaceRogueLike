@@ -21,5 +21,5 @@ public class RunConfig : ScriptableObject
     public int UpgradeStartLevel = 4;
     public float PoisonTickInterval = 1f;
     public int PoisonMaxStacks = 8;
-    public float ZapperChainSearchRadius = 5f;
+    public float ZapperChainSearchRadius = 15f;
 }

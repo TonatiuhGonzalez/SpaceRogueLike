@@ -29,9 +29,12 @@ public class PlayerController : MonoBehaviour
     public void Initialize(ShipArchetypeData archetype)
     {
         gameObject.SetActive(true);
+        transform.position = Vector3.zero;
+        _inputReader.ResetInput();
         _movement.Initialize(archetype.MoveSpeed);
         _health.Initialize(archetype.MaxHealth);
         _weaponController.SetArchetypeMultiplier(archetype.DamageMultiplier);
+        _weaponController.ResetWeapons();
         _weaponController.EquipWeapon(_starterWeapon, 0);
     }
 }

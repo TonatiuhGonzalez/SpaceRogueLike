@@ -54,6 +54,8 @@ public class Projectile : MonoBehaviour
     {
         if (_config.ExplosionRadius <= 0f) return;
 
+        WeaponEffectsPool.Instance.SpawnAreaExplosion(transform.position, _config.ExplosionRadius);
+
         Collider2D[] hits = Physics2D.OverlapCircleAll(
             transform.position, _config.ExplosionRadius, _config.TargetLayer);
 
@@ -62,33 +64,29 @@ public class Projectile : MonoBehaviour
         {
             if (col == primaryHit) continue;
             if (col.TryGetComponent<IDamageable>(out var d))
+            {
                 d.TakeDamage(splashDamage);
+                DamageNumberPool.Instance.Spawn(col.transform.position, splashDamage, false);
+            }
         }
     }
 
     private void ApplyZapper(Collider2D primaryHit)
     {
         if (_config.ChainCount <= 0 || _config.ChainDamagePercents == null) return;
+        if (_config.ProjectileManager == null) return;
 
-        Collider2D[] nearby = Physics2D.OverlapCircleAll(
-            transform.position, _config.ChainSearchRadius, _config.TargetLayer);
-
-        ShuffleInPlace(nearby);
-
-        int chained = 0;
-        foreach (Collider2D col in nearby)
+        _config.ProjectileManager.RunZapperChain(new ZapperChainRequest
         {
-            if (chained >= _config.ChainCount) break;
-            if (col == primaryHit) continue;
-            if (!col.TryGetComponent<IDamageable>(out var d)) continue;
-
-            float pct = chained < _config.ChainDamagePercents.Length
-                ? _config.ChainDamagePercents[chained]
-                : 0f;
-
-            d.TakeDamage(_config.Damage * pct);
-            chained++;
-        }
+            PrimaryHit          = primaryHit,
+            OriginPosition      = primaryHit.transform.position,
+            Damage              = _config.Damage,
+            ChainCount          = _config.ChainCount,
+            ChainDamagePercents = _config.ChainDamagePercents,
+            SearchRadius        = _config.ChainSearchRadius,
+            Delay               = _config.ChainDelay,
+            TargetLayer         = _config.TargetLayer,
+        });
     }
 
     private void ApplyPoison(Collider2D primaryHit)
@@ -98,15 +96,6 @@ public class Projectile : MonoBehaviour
         float tickDamage = _config.Damage * _config.PoisonTickPercent;
         primaryHit.GetComponent<PoisonStatus>()?.ApplyPoison(
             tickDamage, _config.PoisonMode, _config.PoisonMaxStacks);
-    }
-
-    private static void ShuffleInPlace(Collider2D[] array)
-    {
-        for (int i = array.Length - 1; i > 0; i--)
-        {
-            int j = UnityEngine.Random.Range(0, i + 1);
-            (array[i], array[j]) = (array[j], array[i]);
-        }
     }
 
     private void OnDisable()

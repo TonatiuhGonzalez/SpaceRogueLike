@@ -12,9 +12,12 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private Transform _playerTransform;
     [SerializeField] private HealthPackPool _healthPackPool;
     [SerializeField] private ProjectileManager _projectileManager;
+    [SerializeField] private EnemyFormationController _formationController;
 
     public event Action<EnemyHealth> OnEnemySpawned;
+    public event Action OnSpawningComplete;
     public int SpawnedCount { get; private set; }
+    public int TotalToSpawn { get; private set; }
 
     public void StartLevel(int levelIndex)
     {
@@ -24,6 +27,7 @@ public class EnemySpawner : MonoBehaviour
         int clampedIndex = Mathf.Clamp(levelIndex, 0, _levelConfig.Levels.Length - 1);
         LevelEntry entry = _levelConfig.Levels[clampedIndex];
         int count = UnityEngine.Random.Range(entry.EnemyCountMin, entry.EnemyCountMax + 1);
+        TotalToSpawn = count;
 
         StartCoroutine(SpawnRoutine(entry, count));
     }
@@ -43,6 +47,8 @@ public class EnemySpawner : MonoBehaviour
 
             yield return new WaitForSeconds(_runConfig.SpawnDelayBetweenEnemies);
         }
+
+        OnSpawningComplete?.Invoke();
     }
 
     private Vector2 GetRandomBorderPosition()
@@ -79,7 +85,8 @@ public class EnemySpawner : MonoBehaviour
         enemy.Initialize(
             enemy.Data, entry.AiTier,
             entry.HpMultiplier, entry.SpeedMultiplier, entry.FireRateMultiplier,
-            _playerTransform, _pool, _runConfig, _projectileManager, assignedAngle);
+            _playerTransform, _pool, _runConfig, _projectileManager,
+            _formationController, assignedAngle);
 
         if (_healthPackPool != null)
             enemy.Health.OnDiedAtPosition += _healthPackPool.TrySpawnAt;

@@ -8,9 +8,9 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private EnemyShooter _shooter;
 
     private StateMachine _stateMachine;
-    private float _assignedFlankAngle;
     private EnemyPool _ownerPool;
     private Transform _playerTransform;
+    private EnemyFormationController _formationController;
 
     public EnemyData Data => _data;
     public EnemyHealth Health => _health;
@@ -25,21 +25,33 @@ public class EnemyController : MonoBehaviour
         EnemyPool ownerPool,
         RunConfig runConfig,
         ProjectileManager projectileManager,
+        EnemyFormationController formationController,
         float assignedAngle = 0f)
     {
         _data = data;
-        _assignedFlankAngle = assignedAngle;
         _ownerPool = ownerPool;
         _playerTransform = playerTransform;
+        _formationController = formationController;
 
         _health.Initialize(data.BaseHp * hpMultiplier);
         _movement.Initialize(data.BaseSpeed * speedMultiplier);
+        _movement.FormationAngle = assignedAngle;
         _shooter.Initialize(data, playerTransform, fireRateMultiplier, projectileManager);
 
         _stateMachine = new StateMachine();
         _stateMachine.SetState(BuildInitialState(tier, playerTransform, runConfig));
 
         _health.OnDied += HandleDied;
+
+        if (IsFormationEnemy())
+            _formationController?.Register(_movement);
+    }
+
+    private bool IsFormationEnemy()
+    {
+        return _data.Type != EnemyType.Chaser
+            && _data.Type != EnemyType.Warper
+            && _data.Type != EnemyType.Sniper;
     }
 
     private void Update()
@@ -64,13 +76,14 @@ public class EnemyController : MonoBehaviour
         if (other.TryGetComponent<IDamageable>(out var damageable))
             damageable.TakeDamage(_data.BaseDamage);
 
-        HandleDied();
+        _health.ForceKill();
     }
 
     private void OnDisable()
     {
         if (_health != null)
             _health.OnDied -= HandleDied;
+        _formationController?.Unregister(_movement);
         _stateMachine = null;
     }
 
@@ -93,9 +106,9 @@ public class EnemyController : MonoBehaviour
             {
                 EnemyAITier.Tier1_Basic => new EnemyChaseState(_movement, _shooter, playerTransform, _data),
                 EnemyAITier.Tier2_Dodge => new EnemyDodgeState(_movement, _shooter, playerTransform, _data),
-                EnemyAITier.Tier3_Flank => new EnemyFlankState(_movement, _shooter, playerTransform, _assignedFlankAngle),
-                EnemyAITier.Tier4_Surround => new EnemySurroundState(_movement, _shooter, playerTransform, _assignedFlankAngle, tier),
-                EnemyAITier.Tier5_Maximum => new EnemySurroundState(_movement, _shooter, playerTransform, _assignedFlankAngle, tier),
+                EnemyAITier.Tier3_Flank => new EnemyFlankState(_movement, _shooter, playerTransform),
+                EnemyAITier.Tier4_Surround => new EnemySurroundState(_movement, _shooter, playerTransform, tier),
+                EnemyAITier.Tier5_Maximum => new EnemySurroundState(_movement, _shooter, playerTransform, tier),
                 _ => new EnemyChaseState(_movement, _shooter, playerTransform, _data)
             }
         };

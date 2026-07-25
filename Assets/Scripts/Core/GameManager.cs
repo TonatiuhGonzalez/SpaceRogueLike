@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerController _playerController;
     [SerializeField] private WeaponSelectionController _weaponSelectionController;
     [SerializeField] private ProjectileManager _projectileManager;
+    [SerializeField] private HealthPackPool _healthPackPool;
+    [SerializeField] private EnemySpawner _enemySpawner;
 
     public GameState CurrentState { get; private set; }
 
@@ -84,6 +86,8 @@ public class GameManager : MonoBehaviour
     {
         SetState(GameState.Victory);
         ScreenManager.Instance.ShowScreen(GameScreen.Victory);
+        _healthPackPool.ClearAllHealthPacks();
+        _playerController.gameObject.SetActive(false);
     }
 
     private void HandlePlayerDied()
@@ -91,9 +95,11 @@ public class GameManager : MonoBehaviour
         if (CurrentState != GameState.Playing) return;
         SetState(GameState.Dead);
         _projectileManager.ClearAllProjectiles();
+        _enemySpawner.StopAllCoroutines();
         _levelManager.ClearAllEnemies();
         ScreenManager.Instance.ShowScreen(GameScreen.Death);
         AudioManager.Instance.PlaySFX(_audioData.PlayerDeath);
+        _healthPackPool.ClearAllHealthPacks();
     }
 
     public void StartLevel()
