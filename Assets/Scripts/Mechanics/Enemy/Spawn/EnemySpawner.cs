@@ -86,7 +86,7 @@ public class EnemySpawner : MonoBehaviour
             enemy.Data, entry.AiTier,
             entry.HpMultiplier, entry.SpeedMultiplier, entry.FireRateMultiplier,
             _playerTransform, _pool, _runConfig, _projectileManager,
-            _formationController, assignedAngle);
+            _formationController, _mapBounds, assignedAngle);
 
         if (_healthPackPool != null)
             enemy.Health.OnDiedAtPosition += _healthPackPool.TrySpawnAt;

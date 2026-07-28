@@ -26,6 +26,7 @@ public class EnemyController : MonoBehaviour
         RunConfig runConfig,
         ProjectileManager projectileManager,
         EnemyFormationController formationController,
+        BoxCollider2D mapBounds,
         float assignedAngle = 0f)
     {
         _data = data;
@@ -39,7 +40,7 @@ public class EnemyController : MonoBehaviour
         _shooter.Initialize(data, playerTransform, fireRateMultiplier, projectileManager);
 
         _stateMachine = new StateMachine();
-        _stateMachine.SetState(BuildInitialState(tier, playerTransform, runConfig));
+        _stateMachine.SetState(BuildInitialState(tier, playerTransform, runConfig, mapBounds));
 
         _health.OnDied += HandleDied;
 
@@ -95,12 +96,13 @@ public class EnemyController : MonoBehaviour
     private IState BuildInitialState(
         EnemyAITier tier,
         Transform playerTransform,
-        RunConfig runConfig)
+        RunConfig runConfig,
+        BoxCollider2D mapBounds)
     {
         return _data.Type switch
         {
             EnemyType.Chaser => new ChaserRushState(_movement, _health, playerTransform),
-            EnemyType.Warper => new WarpState(_movement, _shooter, playerTransform, runConfig),
+            EnemyType.Warper => new WarpState(_movement, _shooter, playerTransform, _data, mapBounds),
             EnemyType.Sniper => new SniperKeepRangeState(_movement, _shooter, playerTransform, _data),
             _ => tier switch
             {

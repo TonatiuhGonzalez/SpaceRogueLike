@@ -5,20 +5,23 @@ public class WarpState : IState
     private readonly EnemyMovement _movement;
     private readonly EnemyShooter _shooter;
     private readonly Transform _player;
-    private readonly RunConfig _runConfig;
+    private readonly EnemyData _data;
+    private readonly BoxCollider2D _mapBounds;
 
     private float _warpTimer;
-    private const float WARP_INTERVAL = 3f;
-    private const float MAP_HALF_SIZE = 20f;
+    private const float WARP_INTERVAL_MIN = 7f;
+    private const float WARP_INTERVAL_MAX = 10f;
+    private const float RANGE_MARGIN = 5f;
 
     public WarpState(EnemyMovement movement, EnemyShooter shooter,
-        Transform player, RunConfig runConfig)
+        Transform player, EnemyData data, BoxCollider2D mapBounds)
     {
         _movement = movement;
         _shooter = shooter;
         _player = player;
-        _runConfig = runConfig;
-        _warpTimer = WARP_INTERVAL;
+        _data = data;
+        _mapBounds = mapBounds;
+        _warpTimer = Random.Range(WARP_INTERVAL_MIN, WARP_INTERVAL_MAX);
     }
 
     public void Enter() { }
@@ -29,7 +32,7 @@ public class WarpState : IState
         if (_warpTimer <= 0f)
         {
             TeleportToSafePosition();
-            _warpTimer = WARP_INTERVAL;
+            _warpTimer = Random.Range(WARP_INTERVAL_MIN, WARP_INTERVAL_MAX);
         }
 
         _shooter.TryShoot();
@@ -39,21 +42,24 @@ public class WarpState : IState
 
     private void TeleportToSafePosition()
     {
-        float safeZone = _runConfig != null ? _runConfig.WarperSafeZoneRadius : 3f;
-        Vector2 candidate;
-        int attempts = 0;
+        if (_player == null) return;
 
-        do
-        {
-            candidate = new Vector2(
-                Random.Range(-MAP_HALF_SIZE, MAP_HALF_SIZE),
-                Random.Range(-MAP_HALF_SIZE, MAP_HALF_SIZE));
-            attempts++;
-        }
-        while (_player != null &&
-               ((Vector2)_player.position - candidate).sqrMagnitude < safeZone * safeZone &&
-               attempts < 10);
+        float distance = Mathf.Max(0f, _data.BaseRange - RANGE_MARGIN);
+        float angle = Random.Range(0f, Mathf.PI * 2f);
+        Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+        Vector2 candidate = (Vector2)_player.position + offset;
+
+        if (_mapBounds != null)
+            candidate = ClampToBounds(candidate);
 
         _movement.TeleportTo(candidate);
+    }
+
+    private Vector2 ClampToBounds(Vector2 position)
+    {
+        Bounds bounds = _mapBounds.bounds;
+        return new Vector2(
+            Mathf.Clamp(position.x, bounds.min.x, bounds.max.x),
+            Mathf.Clamp(position.y, bounds.min.y, bounds.max.y));
     }
 }
