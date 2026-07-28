@@ -13,7 +13,6 @@ public class RunConfig : ScriptableObject
     public float HealthPackDropChance = 0.003f;
 
     [Header("Enemy")]
-    public float WarperSafeZoneRadius = 3f;
     public float SpawnDelayBetweenEnemies = 0.3f;
     public float MinEnemySpawnDistance = 5f;
 
