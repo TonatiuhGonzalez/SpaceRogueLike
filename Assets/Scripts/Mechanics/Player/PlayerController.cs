@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerHealth _health;
     [SerializeField] private WeaponController _weaponController;
     [SerializeField] private InputReader _inputReader;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
 
     [Header("Config")]
     [SerializeField] private WeaponData _starterWeapon;
@@ -31,6 +32,7 @@ public class PlayerController : MonoBehaviour
         gameObject.SetActive(true);
         transform.position = Vector3.zero;
         _inputReader.ResetInput();
+        _spriteRenderer.sprite = archetype.ShipSprite;
         _movement.Initialize(archetype.MoveSpeed);
         _health.Initialize(archetype.MaxHealth);
         _weaponController.SetArchetypeMultiplier(archetype.DamageMultiplier);
