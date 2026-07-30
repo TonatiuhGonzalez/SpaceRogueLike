@@ -5,6 +5,8 @@ using UnityEngine;
 public class ProjectileManager : MonoBehaviour
 {
     [SerializeField] private int _defaultPoolSize = 20;
+    [SerializeField] private BoxCollider2D _mapBounds;
+    [SerializeField] private float _boundsMargin = 15f;
 
     private readonly Dictionary<Projectile, ObjectPool<Projectile>> _pools = new();
 
@@ -26,6 +28,17 @@ public class ProjectileManager : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
             transform.GetChild(i).gameObject.SetActive(false);
+    }
+
+    public bool IsOutOfBounds(Vector2 position)
+    {
+        if (_mapBounds == null) return false;
+
+        Bounds bounds = _mapBounds.bounds;
+        return position.x < bounds.min.x - _boundsMargin
+            || position.x > bounds.max.x + _boundsMargin
+            || position.y < bounds.min.y - _boundsMargin
+            || position.y > bounds.max.y + _boundsMargin;
     }
 
     public void RunZapperChain(ZapperChainRequest request)

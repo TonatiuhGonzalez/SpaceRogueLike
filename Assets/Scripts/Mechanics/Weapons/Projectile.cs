@@ -22,6 +22,9 @@ public class Projectile : MonoBehaviour
     private void Update()
     {
         transform.Translate(_direction * _speed * Time.deltaTime, Space.World);
+
+        if (_config.ProjectileManager != null && _config.ProjectileManager.IsOutOfBounds(transform.position))
+            _config.OnReturn?.Invoke();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
