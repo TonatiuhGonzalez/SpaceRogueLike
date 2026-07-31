@@ -36,7 +36,7 @@ public class GameplayHUDController : MonoBehaviour
 
     private void Start()
     {
-        UpdateHealthBar(_playerHealth != null ? _playerHealth.HealthPercent : 1f);
+        UpdateHealthBar(1f);
 
         if (_weaponController != null)
         {
