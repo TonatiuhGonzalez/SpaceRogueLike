@@ -1,11 +1,10 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class GameplayHUDController : MonoBehaviour
 {
     [Header("Health")]
-    [SerializeField] private Slider _healthBar;
+    [SerializeField] private HealthBarUI _healthBar;
 
     [Header("Level Info")]
     [SerializeField] private TextMeshProUGUI _enemyCountText;
@@ -52,7 +51,7 @@ public class GameplayHUDController : MonoBehaviour
 
     private void UpdateHealthBar(float percent)
     {
-        _healthBar.value = percent;
+        _healthBar.SetHealthPercent(percent);
     }
 
     private void UpdateEnemyCount(int count)
