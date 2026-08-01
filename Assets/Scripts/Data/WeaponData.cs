@@ -42,4 +42,10 @@ public class WeaponData : ScriptableObject
     [Header("References")]
     public Projectile ProjectilePrefab;
     public AudioClip FireSFX;
+
+    [Header("Visual")]
+    public Sprite ProjectileSprite;
+    [SerializeField] private float _projectileScale = 1f;
+
+    public float ProjectileScale => _projectileScale;
 }
