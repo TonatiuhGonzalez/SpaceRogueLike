@@ -24,7 +24,8 @@ public class Projectile : MonoBehaviour
         float scale = Mathf.Max(0.01f, config.BulletSizeMultiplier);
         transform.localScale = Vector3.one * scale;
 
-        _spriteRenderer.sprite = config.ProjectileSprite;
+        if (config.ProjectileSprite != null)
+            _spriteRenderer.sprite = config.ProjectileSprite;
     }
 
     private void Update()
