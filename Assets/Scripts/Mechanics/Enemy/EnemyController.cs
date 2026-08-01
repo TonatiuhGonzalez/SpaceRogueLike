@@ -6,6 +6,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private EnemyHealth _health;
     [SerializeField] private EnemyMovement _movement;
     [SerializeField] private EnemyShooter _shooter;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
 
     private StateMachine _stateMachine;
     private EnemyPool _ownerPool;
@@ -90,6 +91,10 @@ public class EnemyController : MonoBehaviour
 
     private void HandleDied()
     {
+        Vector2 deathPosition = transform.position;
+        Vector2 deathSize = _spriteRenderer.bounds.size;
+        EnemyExplosionPool.Instance?.SpawnExplosion(deathPosition, deathSize);
+
         _ownerPool?.Return(this);
     }
 
