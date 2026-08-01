@@ -7,6 +7,7 @@ public class EnemyExplosionPool : MonoBehaviour
     [SerializeField] private EnemyExplosionEffect _prefab;
     [SerializeField] private int _poolSize = 10;
     [SerializeField] private float _frameDuration = 0.06f;
+    [SerializeField] private float _sizeMultiplier = 2f;
 
     private ObjectPool<EnemyExplosionEffect> _pool;
 
@@ -21,6 +22,6 @@ public class EnemyExplosionPool : MonoBehaviour
     public void SpawnExplosion(Vector2 position, Vector2 size)
     {
         EnemyExplosionEffect effect = _pool.Get();
-        effect.Initialize(position, size, _frameDuration, () => _pool.Return(effect));
+        effect.Initialize(position, size * _sizeMultiplier, _frameDuration, () => _pool.Return(effect));
     }
 }
