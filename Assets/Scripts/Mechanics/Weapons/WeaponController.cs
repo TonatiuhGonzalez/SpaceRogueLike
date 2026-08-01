@@ -199,6 +199,7 @@ public class WeaponController : MonoBehaviour
         UpgradeRegistry upgrades = _runData?.Upgrades;
         int poisonMaxStacks = _runConfig != null ? _runConfig.PoisonMaxStacks : 8;
         float zapRadius = _runConfig != null ? _runConfig.ZapperChainSearchRadius : 15f;
+        float finalBulletSizeMult = weapon.ProjectileScale * bulletSizeMult;
 
         return new ProjectileConfig
         {
@@ -206,7 +207,8 @@ public class WeaponController : MonoBehaviour
             Speed                  = weapon.ProjectileSpeed,
             Damage                 = damage,
             TargetLayer            = _enemyLayer,
-            BulletSizeMultiplier   = bulletSizeMult,
+            BulletSizeMultiplier   = finalBulletSizeMult,
+            ProjectileSprite       = weapon.ProjectileSprite,
             VampiricHealPercent    = weapon.IsVampiric ? slot.EffectiveVampiricPercent : 0f,
             OnHealPlayer           = onHeal,
             ExplosionRadius        = weapon.WeaponType == WeaponType.Area

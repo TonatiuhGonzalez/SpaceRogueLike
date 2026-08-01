@@ -8,6 +8,7 @@ public struct ProjectileConfig
     public float Damage;
     public LayerMask TargetLayer;
     public float BulletSizeMultiplier;
+    public Sprite ProjectileSprite;
 
     public float VampiricHealPercent;
 

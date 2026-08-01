@@ -33,6 +33,9 @@ public class WeaponDataEditor : Editor
     private SerializedProperty _projectilePrefab;
     private SerializedProperty _fireSFX;
 
+    private SerializedProperty _projectileSprite;
+    private SerializedProperty _projectileScale;
+
     private void OnEnable()
     {
         _weaponName = serializedObject.FindProperty(nameof(WeaponData.WeaponName));
@@ -63,6 +66,10 @@ public class WeaponDataEditor : Editor
 
         _projectilePrefab = serializedObject.FindProperty(nameof(WeaponData.ProjectilePrefab));
         _fireSFX = serializedObject.FindProperty(nameof(WeaponData.FireSFX));
+
+        _projectileSprite = serializedObject.FindProperty(nameof(WeaponData.ProjectileSprite));
+        // Private field — FindProperty needs the literal name, nameof() can't reach a private member.
+        _projectileScale = serializedObject.FindProperty("_projectileScale");
     }
 
     public override void OnInspectorGUI()
@@ -90,6 +97,11 @@ public class WeaponDataEditor : Editor
         EditorGUILayout.LabelField("References", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(_projectilePrefab);
         EditorGUILayout.PropertyField(_fireSFX);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Visual", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(_projectileSprite);
+        EditorGUILayout.PropertyField(_projectileScale);
 
         serializedObject.ApplyModifiedProperties();
     }
