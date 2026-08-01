@@ -5,6 +5,12 @@ public class Projectile : MonoBehaviour
     private ProjectileConfig _config;
     private Vector2 _direction;
     private float _speed;
+    private SpriteRenderer _spriteRenderer;
+
+    private void Awake()
+    {
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
 
     public void Initialize(ProjectileConfig config)
     {
@@ -17,6 +23,8 @@ public class Projectile : MonoBehaviour
 
         float scale = Mathf.Max(0.01f, config.BulletSizeMultiplier);
         transform.localScale = Vector3.one * scale;
+
+        _spriteRenderer.sprite = config.ProjectileSprite;
     }
 
     private void Update()
