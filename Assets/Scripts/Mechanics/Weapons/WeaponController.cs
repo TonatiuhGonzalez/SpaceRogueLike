@@ -14,6 +14,7 @@ public class WeaponController : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private LayerMask _enemyLayer;
+    [SerializeField] private float _projectileSpawnOffset = 0.5f;
 
 #if UNITY_EDITOR
     [Header("Debug")]
@@ -171,12 +172,15 @@ public class WeaponController : MonoBehaviour
         slot.StartCooldown(fireRateMult);
     }
 
+    private Vector2 GetMuzzlePosition(Vector2 direction) =>
+        (Vector2)transform.position + direction * _projectileSpawnOffset;
+
     private void FireSingle(WeaponSlot slot, Vector2 direction, float damage,
         float bulletSizeMult, Action<float> onHeal)
     {
         _projectileManager.Spawn(
             slot.EquippedWeapon.ProjectilePrefab,
-            transform.position,
+            GetMuzzlePosition(direction),
             BuildConfig(slot, direction, damage, bulletSizeMult, onHeal));
     }
 
@@ -189,7 +193,7 @@ public class WeaponController : MonoBehaviour
 
         _projectileManager.Spawn(
             slot.EquippedWeapon.ProjectilePrefab,
-            transform.position,
+            GetMuzzlePosition(direction),
             BuildConfig(slot, direction, damage, bulletSizeMult, onHeal));
     }
 
@@ -207,7 +211,7 @@ public class WeaponController : MonoBehaviour
             Vector2 dir = Quaternion.Euler(0f, 0f, angle) * aimDir;
             _projectileManager.Spawn(
                 slot.EquippedWeapon.ProjectilePrefab,
-                transform.position,
+                GetMuzzlePosition(dir),
                 BuildConfig(slot, dir, damage, bulletSizeMult, onHeal));
         }
     }
