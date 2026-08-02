@@ -4,6 +4,7 @@ public class EnemyShooter : MonoBehaviour
 {
     [SerializeField] private AudioData _audioData;
     [SerializeField] private LayerMask _playerLayer;
+    [SerializeField] private float _projectileSpawnOffset = 0.5f;
 
     private ProjectileManager _projectileManager;
     private EnemyData _data;
@@ -41,7 +42,8 @@ public class EnemyShooter : MonoBehaviour
             BulletSizeMultiplier = 1f,
         };
 
-        _projectileManager.Spawn(_data.ProjectilePrefab, transform.position, config);
+        Vector2 spawnPosition = (Vector2)transform.position + direction * _projectileSpawnOffset;
+        _projectileManager.Spawn(_data.ProjectilePrefab, spawnPosition, config);
         AudioManager.Instance.PlaySFX(_audioData.ShootDefault);
         _cooldown += _fireInterval;
     }
