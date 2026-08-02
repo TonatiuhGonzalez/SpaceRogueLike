@@ -15,6 +15,13 @@ public class WeaponController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private LayerMask _enemyLayer;
 
+#if UNITY_EDITOR
+    [Header("Debug")]
+    [Tooltip("Select a weapon here in Play Mode to test its shots immediately, without waiting for a level-up offer.")]
+    [SerializeField] private WeaponData _debugWeaponOverride;
+    private WeaponData _lastDebugWeaponOverride;
+#endif
+
     private const int MAX_SLOTS = 3;
     private readonly WeaponSlot[] _slots = new WeaponSlot[MAX_SLOTS];
     private float _archetypeMultiplier = 1f;
@@ -29,6 +36,19 @@ public class WeaponController : MonoBehaviour
         for (int i = 0; i < MAX_SLOTS; i++)
             _slots[i] = new WeaponSlot();
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!Application.isPlaying) return;
+        if (_debugWeaponOverride == _lastDebugWeaponOverride) return;
+        _lastDebugWeaponOverride = _debugWeaponOverride;
+        if (_debugWeaponOverride == null) return;
+
+        EquipWeapon(_debugWeaponOverride, 0);
+        SetActiveSlot(0);
+    }
+#endif
 
     public void EquipWeapon(WeaponData weapon, int slotIndex)
     {
