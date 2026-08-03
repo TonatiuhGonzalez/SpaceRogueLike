@@ -30,4 +30,9 @@ public class AudioData : ScriptableObject
 
     [Header("UI")]
     public AudioClip ButtonClick;
+
+    [Header("UI - Pause Menu")]
+    public AudioClip PauseOpen;
+    public AudioClip PauseClose;
+    public AudioClip ExitConfirm;
 }
