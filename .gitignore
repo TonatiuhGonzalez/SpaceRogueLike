@@ -13,3 +13,8 @@
 .DS_Store
 Thumbs.db
 /work/
+.utmp/
+*.apk
+*.aab
+*_BackUpThisFolder_ButDontShipItWithYourGame/
+*_BurstDebugInformation_DoNotShip/
