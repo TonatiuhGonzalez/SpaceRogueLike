@@ -20,6 +20,11 @@ public class AudioManager : MonoBehaviour
 
     private const string MUSIC_PARAM = "MusicVolume";
     private const string SFX_PARAM = "SFXVolume";
+    private const string PREF_MUSIC_ENABLED = "MusicEnabled";
+    private const string PREF_SFX_ENABLED = "SFXEnabled";
+
+    public bool IsMusicEnabled { get; private set; }
+    public bool IsSFXEnabled { get; private set; }
 
     private void Awake()
     {
@@ -31,6 +36,25 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         _sfxPool = new ObjectPool<AudioSourceWrapper>(_sfxSourcePrefab, _sfxPoolSize, transform);
+
+        IsMusicEnabled = PlayerPrefs.GetInt(PREF_MUSIC_ENABLED, 1) == 1;
+        IsSFXEnabled = PlayerPrefs.GetInt(PREF_SFX_ENABLED, 1) == 1;
+        SetMusicVolume(IsMusicEnabled ? 1f : 0f);
+        SetSFXVolume(IsSFXEnabled ? 1f : 0f);
+    }
+
+    public void SetMusicEnabled(bool enabled)
+    {
+        IsMusicEnabled = enabled;
+        SetMusicVolume(enabled ? 1f : 0f);
+        PlayerPrefs.SetInt(PREF_MUSIC_ENABLED, enabled ? 1 : 0);
+    }
+
+    public void SetSFXEnabled(bool enabled)
+    {
+        IsSFXEnabled = enabled;
+        SetSFXVolume(enabled ? 1f : 0f);
+        PlayerPrefs.SetInt(PREF_SFX_ENABLED, enabled ? 1 : 0);
     }
 
     public void PlaySFX(AudioClip clip, float volume = 1f, float pitch = 1f)
