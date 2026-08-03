@@ -108,6 +108,35 @@ public class GameManager : MonoBehaviour
         _levelManager.StartLevel();
     }
 
+    public void PauseGame()
+    {
+        if (CurrentState != GameState.Playing) return;
+
+        Time.timeScale = 0f;
+        SetState(GameState.Paused);
+    }
+
+    public void ResumeGame()
+    {
+        if (CurrentState != GameState.Paused) return;
+
+        Time.timeScale = 1f;
+        SetState(GameState.Playing);
+    }
+
+    public void QuitRunToMainMenu()
+    {
+        if (CurrentState != GameState.Paused) return;
+
+        Time.timeScale = 1f;
+        _projectileManager.ClearAllProjectiles();
+        _enemySpawner.StopAllCoroutines();
+        _levelManager.ClearAllEnemies();
+        _healthPackPool.ClearAllHealthPacks();
+        SetState(GameState.MainMenu);
+        ScreenManager.Instance.ShowScreen(GameScreen.MainMenu);
+    }
+
     private void SetState(GameState newState)
     {
         if (_playerController != null)
