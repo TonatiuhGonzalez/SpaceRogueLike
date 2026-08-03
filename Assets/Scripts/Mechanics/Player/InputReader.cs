@@ -10,6 +10,7 @@ public class InputReader : MonoBehaviour
 
     public event Action<Vector2> OnMoveChanged;
     public event Action<Vector2> OnAimChanged;
+    public event Action OnPauseRequested;
 
     private void OnMove(InputValue value)
     {
@@ -21,6 +22,12 @@ public class InputReader : MonoBehaviour
     {
         AimInput = value.Get<Vector2>();
         OnAimChanged?.Invoke(AimInput);
+    }
+
+    private void OnPause(InputValue value)
+    {
+        if (value.isPressed)
+            OnPauseRequested?.Invoke();
     }
 
     public void ResetInput()
