@@ -74,6 +74,7 @@ public class PauseMenuController : MonoBehaviour
 
     private void OnConfirmExitPressed()
     {
+        _confirmExitPanelRoot.SetActive(false);
         _gameplayHUDController.SetHUDVisible(true);
         AudioManager.Instance.PlaySFX(_audioData.ExitConfirm);
         GameManager.Instance.QuitRunToMainMenu();
