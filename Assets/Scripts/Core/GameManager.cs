@@ -133,6 +133,7 @@ public class GameManager : MonoBehaviour
         _enemySpawner.StopAllCoroutines();
         _levelManager.ClearAllEnemies();
         _healthPackPool.ClearAllHealthPacks();
+        _playerController.gameObject.SetActive(false);
         SetState(GameState.MainMenu);
         ScreenManager.Instance.ShowScreen(GameScreen.MainMenu);
     }
