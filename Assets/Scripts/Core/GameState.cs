@@ -3,6 +3,7 @@ public enum GameState
     MainMenu,
     ShipSelection,
     Playing,
+    Paused,
     WeaponSelection,
     Victory,
     Dead

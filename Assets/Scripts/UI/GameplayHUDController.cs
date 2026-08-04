@@ -19,6 +19,9 @@ public class GameplayHUDController : MonoBehaviour
     [SerializeField] private WeaponController _weaponController;
     [SerializeField] private RunData _runData;
 
+    [Header("Pause Visibility")]
+    [SerializeField] private GameObject[] _elementsToHideOnPause;
+
     private void OnEnable()
     {
         _playerHealth.OnHealthChanged += UpdateHealthBar;
@@ -46,6 +49,15 @@ public class GameplayHUDController : MonoBehaviour
             var slots = _weaponController.GetSlots();
             if (slots != null)
                 UpdateWeaponSlots(slots);
+        }
+    }
+
+    public void SetHUDVisible(bool visible)
+    {
+        for (int i = 0; i < _elementsToHideOnPause.Length; i++)
+        {
+            if (_elementsToHideOnPause[i] != null)
+                _elementsToHideOnPause[i].SetActive(visible);
         }
     }
 
