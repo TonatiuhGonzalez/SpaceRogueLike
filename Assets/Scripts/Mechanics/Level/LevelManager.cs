@@ -78,7 +78,8 @@ public class LevelManager : MonoBehaviour
             if (enemy != null)
             {
                 enemy.OnDied -= HandleEnemyDied;
-                enemy.ForceKill();
+                if (enemy.TryGetComponent<EnemyController>(out var controller))
+                    controller.Despawn();
             }
         }
         _trackedEnemies.Clear();

@@ -98,6 +98,12 @@ public class EnemyController : MonoBehaviour
         _ownerPool?.Return(this);
     }
 
+    public void Despawn()
+    {
+        _health.OnDied -= HandleDied;
+        _ownerPool?.Return(this);
+    }
+
     private IState BuildInitialState(
         EnemyAITier tier,
         Transform playerTransform,
