@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        Application.targetFrameRate = GameConstants.TARGET_FRAME_RATE;
         SetState(GameState.MainMenu);
     }
 
