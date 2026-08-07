@@ -3,22 +3,24 @@ using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
-    [SerializeField] private Button _playButton;
+    [SerializeField] private Button _continueButton;
     [SerializeField] private AudioData _audioData;
 
     private void OnEnable()
     {
-        _playButton.onClick.AddListener(OnPlayPressed);
+        _continueButton.interactable = true;
+        _continueButton.onClick.AddListener(OnContinuePressed);
     }
 
     private void OnDisable()
     {
-        _playButton.onClick.RemoveListener(OnPlayPressed);
+        _continueButton.onClick.RemoveListener(OnContinuePressed);
     }
 
-    private void OnPlayPressed()
+    private void OnContinuePressed()
     {
         AudioManager.Instance.PlaySFX(_audioData.ButtonClick);
+        _continueButton.interactable = false;
         ScreenManager.Instance.ShowScreen(GameScreen.ShipSelection);
     }
 }
