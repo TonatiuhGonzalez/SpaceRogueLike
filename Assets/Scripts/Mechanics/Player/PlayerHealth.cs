@@ -11,6 +11,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public event Action<float> OnHealthChanged;
     public event Action OnDied;
+    public event Action OnHealed;
 
     public void Initialize(float maxHealth)
     {
@@ -37,6 +38,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
         OnHealthChanged?.Invoke(HealthPercent);
+        OnHealed?.Invoke();
     }
 
     private void Die()

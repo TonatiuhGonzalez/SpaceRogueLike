@@ -59,7 +59,6 @@ public class Projectile : MonoBehaviour
 
         float healAmt = _config.Damage * _config.VampiricHealPercent;
         _config.OnHealPlayer?.Invoke(healAmt);
-        DamageNumberPool.Instance.Spawn(transform.position, healAmt, true);
     }
 
     private void ApplyArea(Collider2D primaryHit)
