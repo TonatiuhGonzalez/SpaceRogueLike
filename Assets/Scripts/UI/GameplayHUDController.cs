@@ -19,6 +19,7 @@ public class GameplayHUDController : MonoBehaviour
     {
         _playerHealth.OnHealthChanged += UpdateHealthBar;
         _weaponController.OnSlotsChanged += UpdateWeaponSlots;
+        UpdateHealthBar(_playerHealth.HealthPercent);
         UpdateWeaponSlots(_weaponController.GetSlots());
     }
 
@@ -30,8 +31,6 @@ public class GameplayHUDController : MonoBehaviour
 
     private void Start()
     {
-        UpdateHealthBar(1f);
-
         if (_weaponController != null)
         {
             for (int i = 0; i < _weaponSlotUIs.Length; i++)
