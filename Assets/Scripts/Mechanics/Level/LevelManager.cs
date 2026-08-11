@@ -46,9 +46,9 @@ public class LevelManager : MonoBehaviour
         health.OnDied -= HandleEnemyDied;
         health.OnDied += HandleEnemyDied;
 
-        if (!_trackedEnemies.Contains(health))
-            _trackedEnemies.Add(health);
+        if (_trackedEnemies.Contains(health)) return;
 
+        _trackedEnemies.Add(health);
         _enemiesAlive++;
         OnEnemyCountChanged?.Invoke(_enemiesAlive);
     }

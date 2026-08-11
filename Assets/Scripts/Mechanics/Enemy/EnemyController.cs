@@ -36,13 +36,14 @@ public class EnemyController : MonoBehaviour
         _formationController = formationController;
 
         _health.Initialize(data.BaseHp * hpMultiplier);
-        _movement.Initialize(data.BaseSpeed * speedMultiplier);
+        _movement.Initialize(data.BaseSpeed * speedMultiplier, mapBounds);
         _movement.FormationAngle = assignedAngle;
         _shooter.Initialize(data, playerTransform, fireRateMultiplier, projectileManager);
 
         _stateMachine = new StateMachine();
         _stateMachine.SetState(BuildInitialState(tier, playerTransform, runConfig, mapBounds));
 
+        _health.OnDied -= HandleDied;
         _health.OnDied += HandleDied;
 
         if (IsFormationEnemy())
