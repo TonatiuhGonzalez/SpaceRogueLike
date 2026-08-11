@@ -44,5 +44,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     private void OnDisable()
     {
         _isDead = false;
+        OnDiedAtPosition = null;
     }
 }
