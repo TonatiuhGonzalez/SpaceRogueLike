@@ -10,6 +10,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public float HealthPercent => _maxHealth > 0f ? _currentHealth / _maxHealth : 0f;
 
     public event Action<float> OnHealthChanged;
+    public event Action<float> OnDamageTaken;
     public event Action OnDied;
     public event Action OnHealed;
 
@@ -24,6 +25,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public void TakeDamage(float amount)
     {
         if (_isDead || amount <= 0f) return;
+
+        OnDamageTaken?.Invoke(amount);
 
         _currentHealth = Mathf.Max(0f, _currentHealth - amount);
         OnHealthChanged?.Invoke(HealthPercent);
