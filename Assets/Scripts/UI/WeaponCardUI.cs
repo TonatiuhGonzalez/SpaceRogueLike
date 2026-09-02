@@ -17,10 +17,8 @@ public class WeaponCardUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _fireRateText;
     [SerializeField] private TextMeshProUGUI _rangeText;
 
-    [Header("Badge Icons")]
-    [SerializeField] private Sprite _weaponTypeIcon;
-    [SerializeField] private Sprite _genericUpgradeIcon;
-    [SerializeField] private Sprite _specificUpgradeIcon;
+    [Header("Badge Config")]
+    [SerializeField] private OfferBadgeConfig _badgeConfig;
 
     private SelectionOffer _offer;
     private Action<SelectionOffer> _onSelected;
@@ -64,7 +62,7 @@ public class WeaponCardUI : MonoBehaviour
         if (_fireRateText != null) _fireRateText.text = $"RATE: {data.FireRate:0.0}/s";
         if (_rangeText != null)  _rangeText.text = $"RANGE: {data.Range:0.0}";
         if (_effectsText != null) _effectsText.text = BuildWeaponEffectText(data);
-        if (_typeBadgeImage != null) _typeBadgeImage.sprite = _weaponTypeIcon;
+        if (_badgeConfig != null) ApplyBadge(_badgeConfig.Weapon);
 
         SetWeaponStatsVisible(true);
     }
@@ -79,12 +77,24 @@ public class WeaponCardUI : MonoBehaviour
             desc += $"\nPara: {data.TargetWeaponType}";
 
         if (_effectsText != null) _effectsText.text = desc;
-        if (_typeBadgeImage != null)
-            _typeBadgeImage.sprite = data.Category == UpgradeCategory.Generic
-                ? _genericUpgradeIcon
-                : _specificUpgradeIcon;
+        if (_badgeConfig != null)
+        {
+            BadgeVisual visual = data.Category == UpgradeCategory.Generic
+                ? _badgeConfig.GenericUpgrade
+                : _badgeConfig.SpecificUpgrade;
+            ApplyBadge(visual);
+        }
 
         SetWeaponStatsVisible(false);
+    }
+
+    private void ApplyBadge(BadgeVisual visual)
+    {
+        if (_typeBadgeImage == null) return;
+
+        _typeBadgeImage.sprite = visual.Icon;
+        _typeBadgeImage.color = visual.Color;
+        _typeBadgeImage.rectTransform.sizeDelta = visual.Size;
     }
 
     private void SetWeaponStatsVisible(bool visible)
